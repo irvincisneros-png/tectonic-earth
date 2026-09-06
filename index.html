@@ -1,0 +1,228 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tectonic Earth</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{--bg:#0b0e14;--panel:#141922;--panel2:#1c2330;--line:#2a3344;--text:#e8ecf3;--muted:#98a4b8;--accent:#ff7a3d;--ridge:#ff5d3a;--trench:#5aa7ff;--slide:#ffd23f;--land:#d3b17a;--ok:#5fd39a;
+--display:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,Arial,sans-serif}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.45;margin:0;overflow:hidden}
+#app{display:grid;grid-template-columns:1fr 360px;height:100vh}
+#stage{position:relative;min-width:0}
+#stage canvas{display:block;width:100%;height:100%}
+#hud{position:absolute;left:16px;top:14px;pointer-events:none}
+#hud h1{font-family:var(--display);font-weight:700;font-size:26px;margin:0;letter-spacing:-.01em}
+#hud .sub{color:var(--muted);font-size:13px}
+#era{position:absolute;left:16px;bottom:118px;pointer-events:none;max-width:520px}
+#era .big{font-family:var(--display);font-size:44px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+#era .big small{font-size:18px;color:var(--muted);font-weight:500;margin-left:6px}
+#era .name{font-size:17px;font-weight:700;color:var(--accent);margin-top:4px}
+#era .desc{color:var(--muted);font-size:14px;margin-top:2px;max-width:60ch}
+#tip{position:absolute;padding:6px 10px;background:#000c;border:1px solid var(--line);border-radius:6px;font-size:13px;pointer-events:none;display:none;white-space:nowrap}
+#timeline{position:absolute;left:0;right:0;bottom:0;padding:12px 16px 14px;background:linear-gradient(transparent,#0b0e14 55%)}
+#timeline .row{display:flex;align-items:center;gap:10px}
+#timeline input[type=range]{flex:1;accent-color:var(--accent);height:28px}
+.ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:0 64px 0 110px;letter-spacing:.04em;text-transform:uppercase}
+.ticks span{position:relative}
+button{font:inherit;font-weight:700;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.on{background:var(--accent);color:#1a0d05;border-color:var(--accent)}
+#side{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:18px 18px 28px;display:flex;flex-direction:column;gap:18px}
+#side h2{font-family:var(--display);font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.toggles{display:flex;flex-wrap:wrap;gap:6px}
+.toggles button{font-weight:400;font-size:13px;padding:5px 10px}
+label.slider{display:block;font-size:13px;color:var(--muted)}
+label.slider input{width:100%;accent-color:var(--accent);margin-top:4px}
+.heat{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.legend{display:grid;gap:6px;font-size:13px}
+.legend div{display:flex;align-items:center;gap:8px}
+.sw{width:22px;height:6px;border-radius:3px;flex:none}
+.card{background:var(--panel2);border-radius:10px;padding:12px 14px;font-size:14px}
+.card p{margin:0 0 8px}.card p:last-child{margin:0}
+.stat{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px;font-variant-numeric:tabular-nums}
+.stat b{color:var(--muted);font-weight:400}
+details{font-size:14px}summary{cursor:pointer;font-weight:700}
+.q{margin:8px 0 0;padding-left:18px;color:var(--muted)}
+.q li{margin-bottom:6px}
+@media (max-width:820px){#app{grid-template-columns:1fr;grid-template-rows:62vh 1fr}#side{border-left:0;border-top:1px solid var(--line)}#era .big{font-size:30px}#era{bottom:100px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div id="app">
+ <div id="stage">
+  <div id="hud"><h1>Tectonic Earth</h1><div class="sub">Drag to spin · scroll to zoom · click a continent</div></div>
+  <div id="era"><div class="big"><span id="yr">0</span><small id="yrUnit">today</small></div><div class="name" id="eraName"></div><div class="desc" id="eraDesc"></div></div>
+  <div id="tip"></div>
+  <div id="timeline">
+   <div class="row"><button id="play" aria-label="Play or pause">▶ Play</button><span style="font-size:12px;color:var(--muted);width:70px">−400 Ma</span><input id="time" type="range" min="-400" max="250" step="1" value="0" aria-label="Geological time"><span style="font-size:12px;color:var(--muted)">+250 Ma</span><button id="today" style="font-weight:400">Today</button></div>
+   <div class="ticks"><span>Gondwana + Laurussia</span><span>Pangaea</span><span>Breakup</span><span>Today</span><span>Pangaea Proxima</span></div>
+  </div>
+ </div>
+ <aside id="side">
+  <section><h2>View</h2><div class="seg"><button id="mSurface" class="on">Surface</button><button id="mCut">Cutaway</button></div>
+   <div class="toggles" style="margin-top:8px"><button id="tBound" class="on">Boundaries</button><button id="tArrows" class="on">Motion arrows</button><button id="tPlates" class="on">Plates</button><button id="tSpin">Auto-spin</button></div></section>
+  <section><h2>Mantle heat</h2><label class="slider">How hot is the core? Hotter = faster convection = faster plates.<input id="heat" type="range" min="0.2" max="3" step="0.1" value="1" aria-label="Mantle heat"></label><div class="heat"><span>Cooler</span><span id="heatVal">1.0× (real Earth)</span><span>Hotter</span></div></section>
+  <section><h2>What you are seeing</h2><div class="card" id="explain"></div></section>
+  <section><h2>Legend</h2><div class="legend">
+   <div><span class="sw" style="background:var(--ridge)"></span>Divergent boundary: plates pull apart, hot mantle rises, new crust forms (mid-ocean ridge)</div>
+   <div><span class="sw" style="background:var(--trench)"></span>Convergent boundary: plates collide, cool rock sinks (trench, mountains)</div>
+   <div><span class="sw" style="background:var(--slide)"></span>Transform boundary: plates slide past (earthquakes)</div>
+   <div><span class="sw" style="background:var(--land)"></span>Continental crust riding on a plate</div></div></section>
+  <section><h2>Selected continent</h2><div class="card"><div class="stat" id="sel"><b>Continent</b><span>Click one on the globe</span></div></div></section>
+  <section><details><summary>Check your understanding</summary><ol class="q">
+   <li>Set heat to 0.2×. What happens to the speed of the plates? Why?</li>
+   <li>Go to −250 Ma. Which continents were touching that are now separated by an ocean?</li>
+   <li>In Cutaway view, find where orange rock reaches the surface. What kind of boundary forms there?</li>
+   <li>Slide to +250 Ma. Which ocean has closed up? Where would you expect new mountains?</li></ol></details></section>
+ </aside>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ---------- Data: continents, shapes (east,north degrees from centroid), keyframes [time Ma, lat, lon, rot deg]
+const CONTINENTS=[
+{n:"North America",c:0xd9b77c,shape:[[-30,20],[-10,28],[15,25],[25,10],[10,-5],[0,-20],[-8,-25],[-20,-10],[-32,5]],
+ k:[[-400,5,-80,20],[-300,14,-40,10],[-250,20,-24,5],[-200,22,-24,5],[-150,35,-55,0],[-100,42,-80,0],[0,45,-100,0],[100,42,-70,0],[250,38,-14,-10]]},
+{n:"South America",c:0xcfa96c,shape:[[-10,18],[8,15],[15,5],[8,-10],[0,-25],[-6,-28],[-10,-15],[-16,0]],
+ k:[[-400,-40,-30,0],[-300,-24,-16,5],[-250,-20,-10,10],[-150,-19,-14,10],[-100,-15,-45,5],[0,-15,-60,0],[100,-12,-45,0],[250,-10,-4,5]]},
+{n:"Africa",c:0xc99d5f,shape:[[-20,18],[0,22],[18,15],[22,0],[12,-12],[6,-25],[-4,-28],[-12,-15],[-20,0]],
+ k:[[-400,-30,10,0],[-300,-10,10,0],[-250,-5,10,0],[-150,-5,10,0],[-100,0,15,0],[0,5,20,0],[100,12,20,0],[250,18,20,0]]},
+{n:"Eurasia",c:0xd6b47f,shape:[[-50,10],[-30,22],[0,25],[30,22],[55,15],[60,0],[45,-12],[20,-15],[-5,-10],[-30,-8],[-50,-5]],
+ k:[[-400,30,90,10],[-300,38,40,5],[-250,40,24,0],[-150,44,36,0],[0,50,80,0],[100,52,75,0],[250,46,56,0]]},
+{n:"India",c:0xc79b60,shape:[[-8,8],[8,8],[6,-3],[0,-12],[-6,-3]],
+ k:[[-400,-50,40,0],[-250,-32,30,0],[-150,-32,34,0],[-100,-20,60,0],[-50,0,72,0],[0,22,78,0],[250,25,80,0]]},
+{n:"Australia",c:0xd2ab70,shape:[[-18,8],[-5,12],[12,10],[18,0],[12,-10],[-5,-12],[-18,-5]],
+ k:[[-400,-55,70,0],[-250,-45,44,0],[-150,-48,60,0],[-100,-45,110,0],[-50,-35,125,0],[0,-25,135,0],[100,-8,122,10],[250,2,108,20]]},
+{n:"Antarctica",c:0xe6e2d6,shape:[[-25,10],[0,18],[25,12],[28,-5],[10,-18],[-15,-18],[-28,-5]],
+ k:[[-400,-75,20,0],[-250,-62,22,0],[-150,-68,16,0],[-100,-78,10,0],[0,-85,0,0],[250,-80,0,0]]}];
+const ERAS=[[-400,"Devonian: Gondwana and Laurussia","Two big landmasses drift toward each other as the ocean between them is swallowed at a subduction zone."],
+[-330,"Carboniferous: continents collide","Collisions push up huge mountain belts (the Appalachians and Variscan ranges)."],
+[-280,"Permian: Pangaea forms","Nearly all land joins into one supercontinent surrounded by the Panthalassa Ocean."],
+[-225,"Triassic: Pangaea at its peak","One landmass, one ocean. Inside the continent it is hot and dry, far from the sea."],
+[-190,"Jurassic: Pangaea starts to rip","Hot mantle rising beneath the continent pulls it apart. The Atlantic Ocean begins as a narrow rift."],
+[-130,"Cretaceous: Atlantic widens","South America and Africa separate. India breaks away and races north."],
+[-60,"Palaeogene: modern map appears","India slams into Asia, folding the crust into the Himalayas. Australia drifts north from Antarctica."],
+[-10,"Today","Plates still move 2–10 cm a year, about as fast as your fingernails grow."],
+[40,"+50 Ma: Africa meets Europe","The Mediterranean closes and Africa collides with Europe. Australia nears Asia."],
+[130,"+150 Ma: Atlantic begins to close","New subduction zones along the Americas start to swallow the Atlantic floor."],
+[220,"+250 Ma: Pangaea Proxima","The Atlantic is gone. Continents assemble into a new supercontinent. The cycle repeats."]];
+// ---------- Math
+const R2D=180/Math.PI,D2R=Math.PI/180;
+function ll2v(lat,lon){const p=lat*D2R,l=lon*D2R;return new THREE.Vector3(Math.cos(p)*Math.cos(l),Math.sin(p),-Math.cos(p)*Math.sin(l));}
+function v2ll(v){return [Math.asin(v.y)*R2D,-Math.atan2(v.z,v.x)*R2D];}
+function slerp(a,b,t){const d=THREE.MathUtils.clamp(a.dot(b),-1,1),o=Math.acos(d);if(o<1e-6)return a.clone();const s=Math.sin(o);return a.clone().multiplyScalar(Math.sin((1-t)*o)/s).add(b.clone().multiplyScalar(Math.sin(t*o)/s));}
+function ease(t){return t*t*(3-2*t);}
+function poseAt(c,t){const k=c.k;if(t<=k[0][0])return{v:ll2v(k[0][1],k[0][2]),rot:k[0][3]};for(let i=0;i<k.length-1;i++){const a=k[i],b=k[i+1];if(t<=b[0]){const u=ease((t-a[0])/(b[0]-a[0]));return{v:slerp(ll2v(a[1],a[2]),ll2v(b[1],b[2]),u),rot:a[3]+(b[3]-a[3])*u};}}const l=k[k.length-1];return{v:ll2v(l[1],l[2]),rot:l[3]};}
+function basis(c){const up=c.clone().normalize(),north=new THREE.Vector3(0,1,0);let east=new THREE.Vector3().crossVectors(north,up);if(east.lengthSq()<1e-8)east.set(1,0,0);east.normalize();const nrt=new THREE.Vector3().crossVectors(up,east);return{up,east,north:nrt};}
+function surfPoint(c,u,v,rot,rad,scale){const b=basis(c),d=Math.hypot(u,v)*D2R*scale,a=Math.atan2(v,u)+rot*D2R;const dir=b.east.clone().multiplyScalar(Math.cos(a)).add(b.north.clone().multiplyScalar(Math.sin(a)));return b.up.clone().multiplyScalar(Math.cos(d)).add(dir.multiplyScalar(Math.sin(d))).multiplyScalar(rad);}
+</script>
+<script>
+// ---------- Scene
+const stage=document.getElementById('stage');
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.localClippingEnabled=true;stage.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b0e14);
+const camera=new THREE.PerspectiveCamera(40,1,0.1,100);
+const globe=new THREE.Group();scene.add(globe);
+scene.add(new THREE.AmbientLight(0xffffff,0.55));const sun=new THREE.DirectionalLight(0xffffff,0.9);sun.position.set(5,3,4);scene.add(sun);
+// stars
+{const g=new THREE.BufferGeometry(),p=[];for(let i=0;i<1500;i++){const u=Math.random()*2-1,ph=Math.random()*Math.PI*2,s=Math.sqrt(1-u*u);const v=new THREE.Vector3(s*Math.cos(ph),u,s*Math.sin(ph)).multiplyScalar(40);p.push(v.x,v.y,v.z);}g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0x9fb3d0,size:0.12,sizeAttenuation:true})));}
+const clip=[new THREE.Plane(new THREE.Vector3(-1,0,0),0)];
+const oceanMat=new THREE.MeshStandardMaterial({color:0x123f63,roughness:0.7,metalness:0.05});
+const ocean=new THREE.Mesh(new THREE.SphereGeometry(1,96,64),oceanMat);globe.add(ocean);
+const grid=(()=>{const p=[];const seg=72;for(let lat=-60;lat<=60;lat+=30)for(let i=0;i<seg;i++){const a=ll2v(lat,i*360/seg),b=ll2v(lat,(i+1)*360/seg);p.push(a.x,a.y,a.z,b.x,b.y,b.z);}for(let lon=0;lon<360;lon+=30)for(let i=0;i<seg/2;i++){const a=ll2v(-90+i*360/seg,lon),b=ll2v(-90+(i+1)*360/seg,lon);p.push(a.x,a.y,a.z,b.x,b.y,b.z);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p.map(x=>x*1.002),3));return new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0x2f6a97,transparent:true,opacity:0.45}));})();globe.add(grid);
+// interior (visible only in cutaway)
+const interior=new THREE.Group();globe.add(interior);
+const mantleMat=new THREE.MeshStandardMaterial({color:0x7a2a12,roughness:0.9});
+const layers=[[0.99,mantleMat],[0.55,new THREE.MeshStandardMaterial({color:0xff7a2a,emissive:0x662200,roughness:0.6})],[0.19,new THREE.MeshStandardMaterial({color:0xfff0b0,emissive:0xaa7700,roughness:0.4})]];
+layers.forEach(([r,m])=>{interior.add(new THREE.Mesh(new THREE.SphereGeometry(r,64,48),m));});
+// cross-section face
+function faceTex(){const c=document.createElement('canvas');c.width=c.height=1024;const x=c.getContext('2d'),m=512;
+ const ring=(r,col)=>{x.beginPath();x.arc(m,m,r*m,0,Math.PI*2);x.fillStyle=col;x.fill();};
+ ring(1,'#2b1a10');ring(0.99,'#8a3316');const g=x.createRadialGradient(m,m,0.55*m,m,m,0.99*m);g.addColorStop(0,'#c04a1c');g.addColorStop(1,'#5a2010');x.fillStyle=g;x.beginPath();x.arc(m,m,0.99*m,0,Math.PI*2);x.fill();ring(0.55,'#ff8c3a');ring(0.19,'#fff2c0');
+ x.fillStyle='#fff';x.font='bold 30px sans-serif';x.textAlign='center';x.fillText('Crust',m,m-0.985*m+38);x.fillText('Mantle',m,m-0.75*m);x.fillStyle='#3a1200';x.fillText('Outer core',m,m-0.35*m);x.fillText('Inner core',m,m+10);
+ const t=new THREE.CanvasTexture(c);t.anisotropy=8;return t;}
+const face=new THREE.Mesh(new THREE.CircleGeometry(1,96),new THREE.MeshBasicMaterial({map:faceTex()}));face.rotation.y=Math.PI/2;face.position.x=0.001;interior.add(face);
+// convection particles on the face (y,z plane), polar coords r,theta
+const NP=2200,ri=0.56,ro=0.985;const pr=new Float32Array(NP),pt=new Float32Array(NP);
+for(let i=0;i<NP;i++){pr[i]=ri+Math.random()*(ro-ri);pt[i]=Math.random()*Math.PI*2;}
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(NP*3),3));pg.setAttribute('color',new THREE.BufferAttribute(new Float32Array(NP*3),3));
+const particles=new THREE.Points(pg,new THREE.PointsMaterial({size:0.02,vertexColors:true,transparent:true,opacity:0.95}));particles.position.x=0.003;interior.add(particles);
+const NCELL=4;// 4 pairs -> 8 cells
+function conv(r,th){const s=(r-ri)/(ro-ri),A=0.06;const vr=A*NCELL*Math.cos(NCELL*th)*Math.sin(Math.PI*s)/r;const vt=-A*Math.PI*Math.cos(Math.PI*s)*Math.sin(NCELL*th)/(ro-ri);return[vr,vt];}
+const hotC=new THREE.Color(0xffb347),coldC=new THREE.Color(0x4a7fd6),midC=new THREE.Color(0xd9663a);
+function stepParticles(dt,heat){const pos=pg.attributes.position.array,col=pg.attributes.color.array;
+ for(let i=0;i<NP;i++){let r=pr[i],th=pt[i];const[vr,vt]=conv(r,th);r+=vr*dt*heat;th+=vt/r*dt*heat;if(r<ri+0.004)r=ri+0.004;if(r>ro-0.004)r=ro-0.004;pr[i]=r;pt[i]=th;
+  pos[i*3]=0;pos[i*3+1]=r*Math.sin(th);pos[i*3+2]=r*Math.cos(th);
+  const k=THREE.MathUtils.clamp(vr/0.25,-1,1);const c=k>0?midC.clone().lerp(hotC,k):midC.clone().lerp(coldC,-k);col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;}
+ pg.attributes.position.needsUpdate=true;pg.attributes.color.needsUpdate=true;}
+interior.visible=false;
+// ---------- Continents & plates
+const contMeshes=[];
+function subdivide(pts,tris,levels){for(let l=0;l<levels;l++){const mid={},out=[];const m=(a,b)=>{const k=a<b?a+'_'+b:b+'_'+a;if(mid[k]===undefined){mid[k]=pts.length;pts.push(new THREE.Vector2((pts[a].x+pts[b].x)/2,(pts[a].y+pts[b].y)/2));}return mid[k];};tris.forEach(([a,b,c])=>{const ab=m(a,b),bc=m(b,c),ca=m(c,a);out.push([a,ab,ca],[ab,b,bc],[ca,bc,c],[ab,bc,ca]);});tris=out;}return tris;}
+CONTINENTS.forEach(c=>{const pts=c.shape.map(p=>new THREE.Vector2(p[0]*0.62,p[1]*0.62));const tri=subdivide(pts,THREE.ShapeUtils.triangulateShape(pts,[]),3);const idx=[];tri.forEach(t=>idx.push(t[0],t[1],t[2]));const ring=c.shape.length;
+ const mk=(mat,rad,scale)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pts.length*3),3));g.setIndex(idx);const m=new THREE.Mesh(g,mat);m.userData={rad,scale,c};globe.add(m);return m;};
+ const land=mk(new THREE.MeshStandardMaterial({color:c.c,roughness:0.85,side:THREE.DoubleSide}),1.018,1);
+ const plate=mk(new THREE.MeshBasicMaterial({color:0x6fb7ff,transparent:true,opacity:0.13,depthWrite:false,side:THREE.DoubleSide}),1.006,1.35);
+ const og=new THREE.BufferGeometry();og.setAttribute('position',new THREE.BufferAttribute(new Float32Array((ring)*3),3));const outline=new THREE.LineLoop(og,new THREE.LineBasicMaterial({color:0x5c4523}));outline.userData={rad:1.02,scale:1};globe.add(outline);
+ const pg2=new THREE.BufferGeometry();pg2.setAttribute('position',new THREE.BufferAttribute(new Float32Array((ring)*3),3));const pline=new THREE.LineLoop(pg2,new THREE.LineDashedMaterial({color:0x9fd0ff,dashSize:0.03,gapSize:0.02,transparent:true,opacity:0.6}));pline.userData={rad:1.008,scale:1.35};globe.add(pline);
+ const arrow=new THREE.ArrowHelper(new THREE.Vector3(1,0,0),new THREE.Vector3(),0.2,0xffffff,0.06,0.035);globe.add(arrow);
+ contMeshes.push({c,pts,ring,land,plate,outline,pline,arrow,pose:null,vel:new THREE.Vector3()});});
+function setPoly(obj,pts,cen,rot,n){const a=obj.geometry.attributes.position.array;const {rad,scale}=obj.userData;const cnt=n||pts.length;for(let i=0;i<cnt;i++){const p=pts[i],v=surfPoint(cen,p.x,p.y,rot,rad,scale);a[i*3]=v.x;a[i*3+1]=v.y;a[i*3+2]=v.z;}obj.geometry.attributes.position.needsUpdate=true;obj.geometry.computeBoundingSphere();if(obj.isMesh&&obj.material.isMeshStandardMaterial)obj.geometry.computeVertexNormals();}
+function updateContinents(t){contMeshes.forEach(m=>{const p=poseAt(m.c,t),p2=poseAt(m.c,t+1);m.pose=p;m.vel.copy(p2.v).sub(p.v);// per Ma
+ setPoly(m.land,m.pts,p.v,p.rot);setPoly(m.plate,m.pts,p.v,p.rot);setPoly(m.outline,m.pts,p.v,p.rot,m.ring);setPoly(m.pline,m.pts,p.v,p.rot,m.ring);m.pline.computeLineDistances();
+ const sp=m.vel.length();m.arrow.position.copy(p.v).multiplyScalar(1.03);if(sp>1e-5){m.arrow.setDirection(m.vel.clone().normalize());m.arrow.setLength(Math.min(0.5,0.12+sp*9),0.06,0.035);m.arrow.visible=showArrows;}else m.arrow.visible=false;});}
+// boundary markers between neighbouring plates
+const BMAX=21,bounds=[];for(let i=0;i<BMAX;i++){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(2*3),3));const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:0xffffff,linewidth:2}));l.visible=false;globe.add(l);bounds.push(l);}
+const btypes=[];
+function updateBoundaries(){let k=0;btypes.length=0;for(let i=0;i<contMeshes.length;i++)for(let j=i+1;j<contMeshes.length;j++){const A=contMeshes[i],B=contMeshes[j];const ang=A.pose.v.angleTo(B.pose.v);if(ang>0.95||k>=BMAX)continue;
+ const mid=slerp(A.pose.v,B.pose.v,0.5);const sep=B.pose.v.clone().sub(A.pose.v).normalize();const rel=B.vel.clone().sub(A.vel);const closing=rel.dot(sep);const across=rel.clone().sub(sep.clone().multiplyScalar(closing)).length();
+ let type,col;if(Math.abs(closing)<across*0.6&&across>0.002){type='transform';col=0xffd23f;}else if(closing>0.0015){type='divergent';col=0xff5d3a;}else if(closing<-0.0015){type='convergent';col=0x5aa7ff;}else{type='locked';col=0x556677;}
+ const perp=new THREE.Vector3().crossVectors(mid,sep).normalize();const len=0.16;const p1=mid.clone().add(perp.clone().multiplyScalar(len)).normalize().multiplyScalar(1.012),p2=mid.clone().sub(perp.clone().multiplyScalar(len)).normalize().multiplyScalar(1.012);
+ const l=bounds[k++];const a=l.geometry.attributes.position.array;a[0]=p1.x;a[1]=p1.y;a[2]=p1.z;a[3]=p2.x;a[4]=p2.y;a[5]=p2.z;l.geometry.attributes.position.needsUpdate=true;l.material.color.setHex(col);l.visible=showBounds&&type!=='locked';btypes.push({type,A:A.c.n,B:B.c.n});}
+ for(;k<BMAX;k++)bounds[k].visible=false;}
+</script>
+<script>
+// ---------- State & UI
+let time=0,playing=false,heat=1,showBounds=true,showArrows=true,showPlates=true,autoSpin=false,cutaway=false,selected=null;
+const $=id=>document.getElementById(id);
+const timeEl=$('time'),yrEl=$('yr'),unitEl=$('yrUnit');
+function eraFor(t){let e=ERAS[0];for(const x of ERAS)if(t>=x[0])e=x;return e;}
+function setTime(t){time=THREE.MathUtils.clamp(t,-400,250);timeEl.value=Math.round(time);const a=Math.abs(Math.round(time));yrEl.textContent=a===0?'Now':a;unitEl.textContent=a===0?'':(time<0?'million years ago':'million years ahead');const e=eraFor(time);$('eraName').textContent=e[1];$('eraDesc').textContent=e[2];updateContinents(time);updateBoundaries();updateExplain();updateSel();}
+function updateExplain(){const div=btypes.filter(b=>b.type==='divergent').length,con=btypes.filter(b=>b.type==='convergent').length,tr=btypes.filter(b=>b.type==='transform').length;
+ $('explain').innerHTML=(cutaway?'<p><b>Convection currents.</b> Heat from the core warms the rock at the bottom of the mantle. Hot rock is less dense so it slowly rises (orange). Near the surface it cools, becomes denser and sinks (blue). These loops drag the plates above them along.</p><p>Where currents rise, plates are pushed apart (divergent). Where they sink, plates are pulled together (convergent).</p>':
+ '<p><b>Plates ride on the mantle.</b> The continents are carried by convection in the hot mantle beneath them, moving a few centimetres a year, which adds up to thousands of kilometres over millions of years.</p>')+
+ `<p style="color:var(--muted)">Right now: <b style="color:var(--ridge)">${div}</b> divergent, <b style="color:var(--trench)">${con}</b> convergent, <b style="color:var(--slide)">${tr}</b> transform boundaries between the continents shown.</p>`;}
+function updateSel(){const el=$('sel');if(!selected){el.innerHTML='<b>Continent</b><span>Click one on the globe</span>';return;}const m=selected,[lat,lon]=v2ll(m.pose.v);const cmyr=m.vel.length()*6371e5/1e6;// cm/yr (radians*R per Ma)
+ const nb=btypes.filter(b=>b.A===m.c.n||b.B===m.c.n).map(b=>`${b.A===m.c.n?b.B:b.A} (${b.type})`).join('<br>')||'none nearby';
+ el.innerHTML=`<b>Continent</b><span>${m.c.n}</span><b>Centre</b><span>${lat.toFixed(0)}°, ${lon.toFixed(0)}°</span><b>Speed</b><span>${(cmyr*heat).toFixed(1)} cm / year</span><b>Neighbours</b><span>${nb}</span>`;}
+timeEl.addEventListener('input',()=>setTime(+timeEl.value));
+$('play').addEventListener('click',()=>{playing=!playing;$('play').textContent=playing?'❚❚ Pause':'▶ Play';if(playing&&time>=250)setTime(-400);});
+$('today').addEventListener('click',()=>setTime(0));
+$('heat').addEventListener('input',e=>{heat=+e.target.value;$('heatVal').textContent=heat.toFixed(1)+'×'+(Math.abs(heat-1)<0.05?' (real Earth)':'');updateSel();});
+function tog(id,fn){$(id).addEventListener('click',()=>{const on=!$(id).classList.contains('on');$(id).classList.toggle('on',on);fn(on);});}
+tog('tBound',v=>{showBounds=v;updateBoundaries();});tog('tArrows',v=>{showArrows=v;updateContinents(time);});tog('tPlates',v=>{showPlates=v;contMeshes.forEach(m=>{m.plate.visible=v;m.pline.visible=v;});});tog('tSpin',v=>autoSpin=v);
+function setCut(v){cutaway=v;$('mCut').classList.toggle('on',v);$('mSurface').classList.toggle('on',!v);interior.visible=v;const cp=v?clip:[];oceanMat.clippingPlanes=cp;grid.material.clippingPlanes=cp;contMeshes.forEach(m=>{[m.land,m.plate,m.outline,m.pline].forEach(o=>o.material.clippingPlanes=cp);m.arrow.visible=!v&&showArrows;});bounds.forEach(b=>b.material.clippingPlanes=cp);
+ layers.forEach(([r,mm])=>mm.clippingPlanes=cp);if(v){camTheta=0.9;camPhi=0.35;}updateExplain();}
+$('mCut').addEventListener('click',()=>setCut(true));$('mSurface').addEventListener('click',()=>setCut(false));
+// ---------- Orbit controls (custom)
+let camTheta=1.3,camPhi=0.3,camDist=3.5,drag=null,moved=0;
+function placeCam(){camPhi=THREE.MathUtils.clamp(camPhi,-1.4,1.4);camera.position.set(camDist*Math.cos(camPhi)*Math.sin(camTheta),camDist*Math.sin(camPhi),camDist*Math.cos(camPhi)*Math.cos(camTheta));camera.lookAt(0,0,0);}
+const cv=renderer.domElement;
+cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};moved=0;cv.setPointerCapture(e.pointerId);});
+cv.addEventListener('pointermove',e=>{if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;moved+=Math.abs(dx)+Math.abs(dy);camTheta-=dx*0.006;camPhi+=dy*0.006;drag={x:e.clientX,y:e.clientY};}else hover(e);});
+cv.addEventListener('pointerup',e=>{if(moved<4)pick(e);drag=null;});
+cv.addEventListener('wheel',e=>{e.preventDefault();camDist=THREE.MathUtils.clamp(camDist*(1+Math.sign(e.deltaY)*0.08),1.6,6);},{passive:false});
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2(),tip=$('tip');
+function castAt(e){const r=cv.getBoundingClientRect();mouse.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mouse,camera);const hit=ray.intersectObjects(contMeshes.map(m=>m.land))[0];return hit?contMeshes.find(m=>m.land===hit.object):null;}
+function hover(e){const m=castAt(e);if(m){tip.style.display='block';tip.style.left=(e.clientX-stage.getBoundingClientRect().left+14)+'px';tip.style.top=(e.clientY-stage.getBoundingClientRect().top+10)+'px';tip.textContent=m.c.n;cv.style.cursor='pointer';}else{tip.style.display='none';cv.style.cursor='grab';}}
+function pick(e){const m=castAt(e);contMeshes.forEach(x=>x.land.material.emissive.setHex(0));selected=m;if(m)m.land.material.emissive.setHex(0x553300);updateSel();}
+// ---------- Loop
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;
+ if(playing){setTime(time+dt*18*heat);if(time>=250){playing=false;$('play').textContent='▶ Play';}}
+ if(autoSpin&&!drag)camTheta+=dt*0.15;
+ if(cutaway&&!reduced)stepParticles(dt,heat);else if(cutaway)stepParticles(0.0,1);
+ placeCam();renderer.render(scene,camera);requestAnimationFrame(frame);}
+setTime(0);stepParticles(0,1);requestAnimationFrame(frame);
+</script>
