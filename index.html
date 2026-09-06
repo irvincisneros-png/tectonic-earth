@@ -32,6 +32,7 @@ button.on{background:var(--accent);color:#1a0d05;border-color:var(--accent)}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .toggles{display:flex;flex-wrap:wrap;gap:6px}
 .toggles button{font-weight:400;font-size:13px;padding:5px 10px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 label.slider{display:block;font-size:13px;color:var(--muted)}
 label.slider input{width:100%;accent-color:var(--accent);margin-top:4px}
 .heat{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
@@ -63,7 +64,7 @@ details{font-size:14px}summary{cursor:pointer;font-weight:700}
  </div>
  <aside id="side">
   <section><h2>View</h2><div class="seg"><button id="mSurface" class="on">Surface</button><button id="mCut">Cutaway</button></div>
-   <div class="toggles" style="margin-top:8px"><button id="tBound" class="on">Boundaries</button><button id="tArrows" class="on">Motion arrows</button><button id="tPlates" class="on">Plates</button><button id="tSpin">Auto-spin</button></div></section>
+   <div class="toggles" style="margin-top:8px"><button id="tBound" class="on">All boundaries</button><button id="kD" class="on"><span class="dot" style="background:var(--ridge)"></span>Ridges / rifts</button><button id="kC" class="on"><span class="dot" style="background:var(--trench)"></span>Subduction / collision</button><button id="kT" class="on"><span class="dot" style="background:var(--slide)"></span>Transform faults</button><button id="tArrows" class="on">Motion arrows</button><button id="tPlates" class="on">Plates</button><button id="tSpin">Auto-spin</button></div></section>
   <section><h2>Mantle heat</h2><label class="slider">How hot is the core? Hotter = faster convection = faster plates.<input id="heat" type="range" min="0.2" max="3" step="0.1" value="1" aria-label="Mantle heat"></label><div class="heat"><span>Cooler</span><span id="heatVal">1.0× (real Earth)</span><span>Hotter</span></div></section>
   <section><h2>What you are seeing</h2><div class="card" id="explain"></div></section>
   <section><h2>Legend</h2><div class="legend">
@@ -189,11 +190,12 @@ function updateBoundaries(){let k=0;btypes.length=0;for(let i=0;i<contMeshes.len
  const mid=slerp(A.pose.v,B.pose.v,0.5);const sep=B.pose.v.clone().sub(A.pose.v).normalize();const rel=B.vel.clone().sub(A.vel);const closing=rel.dot(sep);const across=rel.clone().sub(sep.clone().multiplyScalar(closing)).length();
  let type,col;if(Math.abs(closing)<across*0.6&&across>0.002){type='transform';col=0xffd23f;}else if(closing>0.0015){type='divergent';col=0xff5d3a;}else if(closing<-0.0015){type='convergent';col=0x5aa7ff;}else{type='locked';col=0x556677;}
  const perp=new THREE.Vector3().crossVectors(mid,sep).normalize();const len=0.16;const p1=mid.clone().add(perp.clone().multiplyScalar(len)).normalize().multiplyScalar(1.012),p2=mid.clone().sub(perp.clone().multiplyScalar(len)).normalize().multiplyScalar(1.012);
- const l=bounds[k++];const a=l.geometry.attributes.position.array;a[0]=p1.x;a[1]=p1.y;a[2]=p1.z;a[3]=p2.x;a[4]=p2.y;a[5]=p2.z;l.geometry.attributes.position.needsUpdate=true;l.material.color.setHex(col);l.visible=showBounds&&type!=='locked';btypes.push({type,A:A.c.n,B:B.c.n});}
+ const l=bounds[k++];const a=l.geometry.attributes.position.array;a[0]=p1.x;a[1]=p1.y;a[2]=p1.z;a[3]=p2.x;a[4]=p2.y;a[5]=p2.z;l.geometry.attributes.position.needsUpdate=true;l.material.color.setHex(col);l.visible=showBounds&&type!=='locked'&&showKind[type[0]];btypes.push({type,A:A.c.n,B:B.c.n});}
  for(;k<BMAX;k++)bounds[k].visible=false;}
 </script>
 <script>
 // ---------- State & UI
+const showKind={d:true,c:true,t:true};
 let time=0,playing=false,heat=1,showBounds=true,showArrows=true,showPlates=true,autoSpin=false,cutaway=false,selected=null;
 const $=id=>document.getElementById(id);
 const timeEl=$('time'),yrEl=$('yr'),unitEl=$('yrUnit');
@@ -211,7 +213,7 @@ $('play').addEventListener('click',()=>{playing=!playing;$('play').textContent=p
 $('today').addEventListener('click',()=>setTime(0));$('pangaea').addEventListener('click',()=>{setTime(-250);camTheta=1.3;camPhi=0.1;});
 $('heat').addEventListener('input',e=>{heat=+e.target.value;$('heatVal').textContent=heat.toFixed(1)+'×'+(Math.abs(heat-1)<0.05?' (real Earth)':'');updateSel();});
 function tog(id,fn){$(id).addEventListener('click',()=>{const on=!$(id).classList.contains('on');$(id).classList.toggle('on',on);fn(on);});}
-tog('tBound',v=>{showBounds=v;updateBoundaries();});tog('tArrows',v=>{showArrows=v;updateContinents(time);});tog('tPlates',v=>{showPlates=v;contMeshes.forEach(m=>{m.plate.visible=v;});});tog('tSpin',v=>autoSpin=v);
+tog('tBound',v=>{showBounds=v;updateBoundaries();if(typeof updateTectLayer==='function')updateTectLayer(time);});[['kD','d'],['kC','c'],['kT','t']].forEach(([id,k])=>tog(id,v=>{showKind[k]=v;updateBoundaries();updateTectLayer(time);}));tog('tArrows',v=>{showArrows=v;updateContinents(time);});tog('tPlates',v=>{showPlates=v;contMeshes.forEach(m=>{m.plate.visible=v;});});tog('tSpin',v=>autoSpin=v);
 function setCut(v){cutaway=v;$('mCut').classList.toggle('on',v);$('mSurface').classList.toggle('on',!v);interior.visible=v;const cp=v?clip:[];oceanMat.clippingPlanes=cp;grid.material.clippingPlanes=cp;contMeshes.forEach(m=>{[m.land,m.plate].forEach(o=>o.material.clippingPlanes=cp);m.arrow.visible=!v&&showArrows;});bounds.forEach(b=>b.material.clippingPlanes=cp);
  layers.forEach(([r,mm])=>mm.clippingPlanes=cp);if(v){camTheta=0.9;camPhi=0.35;}updateExplain();}
 $('mCut').addEventListener('click',()=>setCut(true));$('mSurface').addEventListener('click',()=>setCut(false));
@@ -259,7 +261,7 @@ const plateMeshes=[],plateLabels=[];
   let area=0;for(let i=0;i<L.tris.length;i+=3){const a=new THREE.Vector3(...b0(L.base,L.tris[i])),b=new THREE.Vector3(...b0(L.base,L.tris[i+1])),c=new THREE.Vector3(...b0(L.base,L.tris[i+2]));area+=new THREE.Vector3().crossVectors(b.clone().sub(a),c.clone().sub(a)).length()/2;}
   const el=document.createElement('div');el.className='plab'+(area<0.08?' minor':'');el.textContent=(PLATENAME[p.c]||p.n)+' plate';lab.appendChild(el);plateLabels.push({el,cen:L.cen,area});});})();
 let tectAlpha=1;
-function updateTectLayer(t){tectAlpha=THREE.MathUtils.clamp(1-(Math.abs(t)-12)/18,0,1);tect.visible=tectAlpha>0&&showBounds;for(const k in ribbonMats)ribbonMats[k].opacity=tectAlpha;plateMeshes.forEach(m=>{m.material.opacity=0.16*tectAlpha;m.visible=showPlates;});
+function updateTectLayer(t){tectAlpha=THREE.MathUtils.clamp(1-(Math.abs(t)-12)/18,0,1);tect.visible=tectAlpha>0&&showBounds;for(const k in ribbonMats)ribbonMats[k].opacity=tectAlpha;tect.children.forEach(o=>{if(o.userData.kind)o.visible=showKind[o.userData.kind];});plateMeshes.forEach(m=>{m.material.opacity=0.16*tectAlpha;m.visible=showPlates;});
  bounds.forEach(b=>{if(tectAlpha>0.5)b.visible=false;});}
 const _setTime=setTime;setTime=function(t){_setTime(t);updateTectLayer(time);};
 const _origBounds=updateBoundaries;updateBoundaries=function(){_origBounds();if(tectAlpha>0.5)bounds.forEach(b=>b.visible=false);};
