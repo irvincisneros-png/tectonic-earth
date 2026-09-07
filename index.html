@@ -271,7 +271,7 @@ function updateTectLayer(t){tectAlpha=THREE.MathUtils.clamp(1-(Math.abs(t)-12)/1
 const _setTime=setTime;setTime=function(t){_setTime(t);updateTectLayer(time);};
 const _origBounds=updateBoundaries;updateBoundaries=function(){_origBounds();if(tectAlpha>0.5)bounds.forEach(b=>b.visible=false);};
 function updateLabels(){const r=cv.getBoundingClientRect();const camDir=camera.position.clone().normalize();const near=camDist<2.3;
- plateLabels.forEach(L=>{const facing=L.cen.dot(camDir);const show=tect.visible&&showLabels&&facing>0.25&&(near||L.area>0.08);if(!show){L.el.style.display='none';return;}
+ plateLabels.forEach(L=>{const facing=L.cen.dot(camDir);const show=tect.visible&&showLabels&&facing>0.25&&(near||L.area>0.08)&&!(cutaway&&L.cen.x>0);if(!show){L.el.style.display='none';return;}
   const p=L.cen.clone().multiplyScalar(1.02).project(camera);L.el.style.display='block';L.el.style.left=((p.x+1)/2*r.width)+'px';L.el.style.top=((1-p.y)/2*r.height)+'px';L.el.style.opacity=Math.min(1,(facing-0.25)*3)*tectAlpha;});}
 (function loop(){updateLabels();requestAnimationFrame(loop);})();
 // hover + click on plates & boundaries
