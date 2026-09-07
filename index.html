@@ -63,7 +63,7 @@ details{font-size:14px}summary{cursor:pointer;font-weight:700}
   </div>
  </div>
  <aside id="side">
-  <section><h2>View</h2><div class="seg"><button id="mSurface" class="on">Surface</button><button id="mCut">Cutaway</button></div>
+  <section><h2>View</h2><button id="reset" style="width:100%;margin-bottom:8px;background:transparent;border-color:var(--accent);color:var(--accent)">↺ Reset everything</button><div class="seg"><button id="mSurface" class="on">Surface</button><button id="mCut">Cutaway</button></div>
    <div class="toggles" style="margin-top:8px"><button id="tBound" class="on">All boundaries</button><button id="kD" class="on"><span class="dot" style="background:var(--ridge)"></span>Ridges / rifts</button><button id="kC" class="on"><span class="dot" style="background:var(--trench)"></span>Subduction / collision</button><button id="kT" class="on"><span class="dot" style="background:var(--slide)"></span>Transform faults</button><button id="tArrows" class="on">Motion arrows</button><button id="tPlates" class="on">Plate fills</button><button id="tLabels" class="on">Plate labels</button><button id="tGrid" class="on">Grid lines</button><button id="tSat" class="on">Satellite imagery</button><button id="tSpin">Auto-spin</button><button id="tClean" style="border-style:dashed">Clean view</button></div></section>
   <section><h2>Sea level &amp; climate</h2><label class="slider">Raise or lower the oceans (works at Today).<input id="sea" type="range" min="-130" max="250" step="5" value="0" aria-label="Sea level change"></label><div class="heat"><span>−130 m</span><span id="seaVal">0 m (today)</span><span>+250 m</span></div>
    <div class="toggles" style="margin-top:8px"><button id="sIce">Ice age −120 m</button><button id="sNow" class="on">Today</button><button id="sGr">Greenland melts +7 m</button><button id="sAll">All ice melts +70 m</button><button id="sCret">Cretaceous hothouse +200 m</button></div>
@@ -370,4 +370,13 @@ const _setTime2=setTime;setTime=function(t){_setTime2(t);setSea(seaLevel);};
 (function(){const el=document.createElement('div');el.className='plab';el.style.color='#bfeeff';el.textContent='Zealandia (submerged continent)';document.getElementById('labels').appendChild(el);
  function upd(){const r=cv.getBoundingClientRect();const c=zea.cen.clone().applyQuaternion(zea.host.q);const facing=c.dot(camera.position.clone().normalize());const ok=facing>0.3&&!(cutaway&&c.x>0);el.style.display=ok?'block':'none';if(ok){const p=c.multiplyScalar(1.02).project(camera);el.style.left=((p.x+1)/2*r.width)+'px';el.style.top=((1-p.y)/2*r.height)+'px';el.style.opacity=Math.min(1,(facing-0.3)*3);}requestAnimationFrame(upd);}upd();})();
 setSea(0);
+</script>
+
+<script>
+// ---------- Reset
+$('reset').addEventListener('click',()=>{playing=false;$('play').textContent='▶ Play';
+ [['tBound',true],['kD',true],['kC',true],['kT',true],['tArrows',true],['tPlates',true],['tLabels',true],['tGrid',true],['tSat',true],['tSpin',false]].forEach(([id,want])=>{if($(id).classList.contains('on')!==want)$(id).click();});
+ setCut(false);setLab('beaker');$('heat').value=1;$('heat').dispatchEvent(new Event('input'));setSea(0);
+ selected=null;contMeshes.forEach(x=>x.land.material.emissive.setHex(0));insp=null;$('inspect').textContent='Click a coloured plate-boundary line (near today) to see what happens there.';
+ camTheta=1.3;camPhi=0.3;camDist=3.5;setTime(0);$('side').scrollTop=0;});
 </script>
