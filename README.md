@@ -13,3 +13,6 @@ Live: https://irvincisneros-png.github.io/tectonic-earth/
 - **Check your understanding**: four prompts in the side panel.
 
 Single file (`index.html`), Three.js r128 from cdnjs, no build step. Continent shapes and paths are simplified for teaching, not geologically exact.
+
+## Imagery
+`tex/earth.jpg` is NASA Blue Marble (Visible Earth, world.topo.bathy 2004-12, public domain), resized to 4096×2048. `tex/earth_normal.jpg` is the Earth normal map from the three.js examples. Continents are textured with their present-day imagery and carry it with them through time; a **Satellite imagery** toggle switches back to flat colours.

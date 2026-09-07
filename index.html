@@ -64,7 +64,7 @@ details{font-size:14px}summary{cursor:pointer;font-weight:700}
  </div>
  <aside id="side">
   <section><h2>View</h2><div class="seg"><button id="mSurface" class="on">Surface</button><button id="mCut">Cutaway</button></div>
-   <div class="toggles" style="margin-top:8px"><button id="tBound" class="on">All boundaries</button><button id="kD" class="on"><span class="dot" style="background:var(--ridge)"></span>Ridges / rifts</button><button id="kC" class="on"><span class="dot" style="background:var(--trench)"></span>Subduction / collision</button><button id="kT" class="on"><span class="dot" style="background:var(--slide)"></span>Transform faults</button><button id="tArrows" class="on">Motion arrows</button><button id="tPlates" class="on">Plate fills</button><button id="tLabels" class="on">Plate labels</button><button id="tGrid" class="on">Grid lines</button><button id="tSpin">Auto-spin</button><button id="tClean" style="border-style:dashed">Clean view</button></div></section>
+   <div class="toggles" style="margin-top:8px"><button id="tBound" class="on">All boundaries</button><button id="kD" class="on"><span class="dot" style="background:var(--ridge)"></span>Ridges / rifts</button><button id="kC" class="on"><span class="dot" style="background:var(--trench)"></span>Subduction / collision</button><button id="kT" class="on"><span class="dot" style="background:var(--slide)"></span>Transform faults</button><button id="tArrows" class="on">Motion arrows</button><button id="tPlates" class="on">Plate fills</button><button id="tLabels" class="on">Plate labels</button><button id="tGrid" class="on">Grid lines</button><button id="tSat" class="on">Satellite imagery</button><button id="tSpin">Auto-spin</button><button id="tClean" style="border-style:dashed">Clean view</button></div></section>
   <section><h2>Mantle heat</h2><label class="slider">How hot is the core? Hotter = faster convection = faster plates.<input id="heat" type="range" min="0.2" max="3" step="0.1" value="1" aria-label="Mantle heat"></label><div class="heat"><span>Cooler</span><span id="heatVal">1.0× (real Earth)</span><span>Hotter</span></div></section>
   <section id="labSec" hidden><h2>Where have you seen convection before?</h2>
    <div class="seg" style="margin-bottom:8px"><button id="labBeaker" class="on">Beaker + KMnO₄</button><button id="labRoom">Heater in a room</button></div>
@@ -130,11 +130,11 @@ const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b0e14);
 const camera=new THREE.PerspectiveCamera(40,1,0.01,100);
 const globe=new THREE.Group();scene.add(globe);
-scene.add(new THREE.AmbientLight(0xffffff,0.55));const sun=new THREE.DirectionalLight(0xffffff,0.9);sun.position.set(5,3,4);scene.add(sun);
+scene.add(new THREE.AmbientLight(0xffffff,0.75));const sun=new THREE.DirectionalLight(0xffffff,1.1);sun.position.set(5,3,4);scene.add(sun);
 // stars
 {const g=new THREE.BufferGeometry(),p=[];for(let i=0;i<1500;i++){const u=Math.random()*2-1,ph=Math.random()*Math.PI*2,s=Math.sqrt(1-u*u);const v=new THREE.Vector3(s*Math.cos(ph),u,s*Math.sin(ph)).multiplyScalar(40);p.push(v.x,v.y,v.z);}g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0x9fb3d0,size:0.12,sizeAttenuation:true})));}
 const clip=[new THREE.Plane(new THREE.Vector3(-1,0,0),0)];
-const oceanMat=new THREE.MeshStandardMaterial({color:0x0f3a5e,roughness:0.55,metalness:0.1});
+const oceanMat=new THREE.MeshStandardMaterial({color:0x06213a,roughness:0.5,metalness:0.15});
 const ocean=new THREE.Mesh(new THREE.SphereGeometry(1,96,64),oceanMat);globe.add(ocean);
 const grid=(()=>{const p=[];const seg=72;for(let lat=-60;lat<=60;lat+=30)for(let i=0;i<seg;i++){const a=ll2v(lat,i*360/seg),b=ll2v(lat,(i+1)*360/seg);p.push(a.x,a.y,a.z,b.x,b.y,b.z);}for(let lon=0;lon<360;lon+=30)for(let i=0;i<seg/2;i++){const a=ll2v(-90+i*360/seg,lon),b=ll2v(-90+(i+1)*360/seg,lon);p.push(a.x,a.y,a.z,b.x,b.y,b.z);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p.map(x=>x*1.002),3));return new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0x2f6a97,transparent:true,opacity:0.45}));})();globe.add(grid);
 // interior (visible only in cutaway)
@@ -165,11 +165,12 @@ function stepParticles(dt,heat){const pos=pg.attributes.position.array,col=pg.at
 interior.visible=false;
 // ---------- Continents & plates (real coastlines, rotated rigidly)
 const contMeshes=[];
+const _tl=new THREE.TextureLoader();const EARTH_TEX=_tl.load('tex/earth.jpg'),EARTH_NRM=_tl.load('tex/earth_normal.jpg');EARTH_TEX.encoding=THREE.sRGBEncoding;EARTH_TEX.anisotropy=8;EARTH_NRM.anisotropy=8;renderer.outputEncoding=THREE.sRGBEncoding;
 function buildLand(polys){const verts=[],idx=[],key={};const vid=(lon,lat)=>{const k=lon.toFixed(2)+','+lat.toFixed(2);if(key[k]===undefined){key[k]=verts.length;verts.push([lon,lat]);}return key[k];};
  const tris=[];const push=(a,b,c,depth)=>{const L=(i,j)=>Math.hypot(verts[i][0]-verts[j][0],verts[i][1]-verts[j][1]);const m=Math.max(L(a,b),L(b,c),L(c,a));if(m>4&&depth<6){const mid=(i,j)=>vid((verts[i][0]+verts[j][0])/2,(verts[i][1]+verts[j][1])/2);const ab=mid(a,b),bc=mid(b,c),ca=mid(c,a);push(a,ab,ca,depth+1);push(ab,b,bc,depth+1);push(ca,bc,c,depth+1);push(ab,bc,ca,depth+1);}else tris.push(a,b,c);};
  polys.forEach(poly=>{const v2=poly.map(p=>new THREE.Vector2(p[0],p[1]));const ids=poly.map(p=>vid(p[0],p[1]));THREE.ShapeUtils.triangulateShape(v2,[]).forEach(t=>push(ids[t[0]],ids[t[1]],ids[t[2]],0));});
- const base=new Float32Array(verts.length*3);const cen=new THREE.Vector3();verts.forEach((p,i)=>{const v=ll2v(p[1],p[0]);base[i*3]=v.x;base[i*3+1]=v.y;base[i*3+2]=v.z;cen.add(v);});cen.normalize();
- return{base,tris,cen,n:verts.length};}
+ const base=new Float32Array(verts.length*3),uv=new Float32Array(verts.length*2);const cen=new THREE.Vector3();verts.forEach((p,i)=>{const v=ll2v(p[1],p[0]);base[i*3]=v.x;base[i*3+1]=v.y;base[i*3+2]=v.z;uv[i*2]=(p[0]+180)/360;uv[i*2+1]=(p[1]+90)/180;cen.add(v);});cen.normalize();
+ return{base,tris,cen,uv,n:verts.length};}
 function eulerQ(list){const q=new THREE.Quaternion();list.forEach(([plat,plon,ang])=>{const r=new THREE.Quaternion().setFromAxisAngle(ll2v(plat,plon),ang*D2R);q.premultiply(r);});return q;}
 function eulerToKey(cen,q){const v=cen.clone().applyQuaternion(q);const e0=basis(cen).east;const e1=e0.clone().applyQuaternion(new THREE.Quaternion().setFromUnitVectors(cen,v));const e2=e0.clone().applyQuaternion(q);let rot=Math.atan2(new THREE.Vector3().crossVectors(e1,e2).dot(v),e1.dot(e2))*R2D;const ll=v2ll(v);return[ll[0],ll[1],rot];}
 function rebuildKeys(c){c.k=c.kraw.map(k=>{if(k[1]==='E'){const r=eulerToKey(c.L.cen,eulerQ(k[2]));return[k[0],r[0],r[1],r[2]];}if(k[0]===0){const ll=v2ll(c.L.cen);return[0,ll[0],ll[1],0];}return k.slice();});}
@@ -177,7 +178,7 @@ CONTINENTS.forEach(c=>{const L=buildLand(LAND[c.n]);c.L=L;c.kraw=c.k;rebuildKeys
  const mk=(mat,rad,scale)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(L.n*3),3));g.setIndex(L.tris);const m=new THREE.Mesh(g,mat);
   let b=L.base;if(scale!==1){b=new Float32Array(L.n*3);const q=new THREE.Quaternion(),ax=new THREE.Vector3();for(let i=0;i<L.n;i++){const p=new THREE.Vector3(...b0(L.base,i));const ang=L.cen.angleTo(p);ax.crossVectors(L.cen,p);if(ax.lengthSq()<1e-9){b.set([p.x,p.y,p.z],i*3);continue;}ax.normalize();q.setFromAxisAngle(ax,ang*scale);const r=L.cen.clone().applyQuaternion(q);b[i*3]=r.x;b[i*3+1]=r.y;b[i*3+2]=r.z;}}
   m.userData={rad,base:b,c};globe.add(m);return m;};
- const land=mk(new THREE.MeshStandardMaterial({color:c.c,roughness:0.9,flatShading:false}),1.012,1);
+ const land=mk(new THREE.MeshStandardMaterial({color:0xffffff,map:EARTH_TEX,normalMap:EARTH_NRM,normalScale:new THREE.Vector2(1.6,1.6),roughness:0.95,metalness:0}),1.012,1);land.geometry.setAttribute('uv',new THREE.BufferAttribute(L.uv,2));
  const plate=mk(new THREE.MeshBasicMaterial({color:0x7cc0ff,transparent:true,opacity:0.12,depthWrite:false}),1.004,1.25);
  const arrow=new THREE.ArrowHelper(new THREE.Vector3(1,0,0),new THREE.Vector3(),0.2,0xffffff,0.06,0.035);globe.add(arrow);
  contMeshes.push({c,L,land,plate,arrow,pose:null,vel:new THREE.Vector3(),q:new THREE.Quaternion()});});
@@ -217,7 +218,7 @@ $('play').addEventListener('click',()=>{playing=!playing;$('play').textContent=p
 $('today').addEventListener('click',()=>setTime(0));$('pangaea').addEventListener('click',()=>{setTime(-250);camTheta=1.3;camPhi=0.1;});
 $('heat').addEventListener('input',e=>{heat=+e.target.value;$('heatVal').textContent=heat.toFixed(1)+'×'+(Math.abs(heat-1)<0.05?' (real Earth)':'');updateSel();});
 function tog(id,fn){$(id).addEventListener('click',()=>{const on=!$(id).classList.contains('on');$(id).classList.toggle('on',on);fn(on);});}
-tog('tBound',v=>{showBounds=v;updateBoundaries();if(typeof updateTectLayer==='function')updateTectLayer(time);});[['kD','d'],['kC','c'],['kT','t']].forEach(([id,k])=>tog(id,v=>{showKind[k]=v;updateBoundaries();updateTectLayer(time);}));tog('tArrows',v=>{showArrows=v;updateContinents(time);});tog('tPlates',v=>{showPlates=v;contMeshes.forEach(m=>{m.plate.visible=v;});});tog('tSpin',v=>autoSpin=v);tog('tLabels',v=>showLabels=v);tog('tGrid',v=>grid.visible=v);
+tog('tBound',v=>{showBounds=v;updateBoundaries();if(typeof updateTectLayer==='function')updateTectLayer(time);});[['kD','d'],['kC','c'],['kT','t']].forEach(([id,k])=>tog(id,v=>{showKind[k]=v;updateBoundaries();updateTectLayer(time);}));tog('tArrows',v=>{showArrows=v;updateContinents(time);});tog('tPlates',v=>{showPlates=v;contMeshes.forEach(m=>{m.plate.visible=v;});});tog('tSpin',v=>autoSpin=v);tog('tLabels',v=>showLabels=v);tog('tSat',v=>{contMeshes.forEach(m=>{const mat=m.land.material;mat.map=v?EARTH_TEX:null;mat.normalMap=v?EARTH_NRM:null;mat.color.setHex(v?0xffffff:m.c.c);mat.needsUpdate=true;});});tog('tGrid',v=>grid.visible=v);
 $('tClean').addEventListener('click',()=>{['tBound','tArrows','tPlates','tLabels','tGrid'].forEach(id=>{if($(id).classList.contains('on'))$(id).click();});});
 function setCut(v){cutaway=v;$('labSec').hidden=!v;$('mCut').classList.toggle('on',v);$('mSurface').classList.toggle('on',!v);interior.visible=v;const cp=v?clip:[];oceanMat.clippingPlanes=cp;grid.material.clippingPlanes=cp;contMeshes.forEach(m=>{[m.land,m.plate].forEach(o=>o.material.clippingPlanes=cp);m.arrow.visible=!v&&showArrows;});bounds.forEach(b=>b.material.clippingPlanes=cp);if(typeof tect!=='undefined')tect.children.forEach(o=>o.material.clippingPlanes=cp);
  layers.forEach(([r,mm])=>mm.clippingPlanes=cp);if(v){camTheta=0.9;camPhi=0.35;}updateExplain();}
