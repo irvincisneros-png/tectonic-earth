@@ -16,3 +16,7 @@ Single file (`index.html`), Three.js r128 from cdnjs, no build step. Continent s
 
 ## Imagery
 `tex/earth.jpg` is NASA Blue Marble (Visible Earth, world.topo.bathy 2004-12, public domain), resized to 4096×2048. `tex/earth_normal.jpg` is the Earth normal map from the three.js examples. Continents are textured with their present-day imagery and carry it with them through time; a **Satellite imagery** toggle switches back to flat colours.
+
+## Sea level & Zealandia
+- **Zealandia** is drawn as a translucent submerged-continent patch (hand-traced outline of the Lord Howe Rise, Norfolk Ridge, Chatham Rise and Campbell Plateau) that moves with the Australian block.
+- **Sea level slider** (−130 to +250 m, Today only): rises flood land using `tex/elev.png` (NASA GEBCO_08 land elevation, ~25 m per grey level, 4096×2048); falls expose the continental shelf using the Natural Earth 10 m 200 m-bathymetry polygons (the ice-age shoreline was nearer 120 m, so the shelf is slightly generous). Presets: ice age −120 m, Greenland +7 m, all ice +70 m, Cretaceous hothouse +200 m, with climate-change context text.
