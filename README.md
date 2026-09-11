@@ -12,7 +12,26 @@ Live: https://irvincisneros-png.github.io/tectonic-earth/
 - **Mantle heat slider**: scales convection speed and plate speed so students can test the cause-and-effect link.
 - **Check your understanding**: four prompts in the side panel.
 
-Single file (`index.html`), Three.js r128 from cdnjs, no build step. Continent shapes and paths are simplified for teaching, not geologically exact.
+Static site (`index.html`, `events.js`, `events.css`), Three.js r128 from cdnjs, no build step. Continent shapes and paths are simplified for teaching, not geologically exact.
+
+## Earth events
+
+Eight interactive teaching sequences extend the globe:
+
+- **Ring of Fire:** selected real volcanic locations, schematic arcs and a tour of the Pacific margins.
+- **Volcano eruption:** subduction, water-assisted mantle melting, magma ascent, ash dispersal and new rock.
+- **Build an island:** submarine volcano growth, emergence and a hotspot island chain.
+- **New ocean crust:** decompression melting and seafloor spreading, with an animated close-up.
+- **Chicxulub impact:** asteroid approach, ejecta, a spreading global dust/aerosol veil, impact winter and clearing. A visibility control reveals the globe beneath the veil.
+- **Ice-age cycle:** regional schematic ice sheets advance and retreat while sea level falls to approximately −120 m and returns.
+- **Volcanic winter:** hypothetical explosive eruption and a temporary stratospheric sulfate aerosol veil.
+- **Megathrust tsunami:** seafloor displacement, deep-water propagation and shallow-water amplification in a coastal cross-section.
+
+Select a scenario, press **Run event**, or scrub its timeline. Playback speed, pause and restart are available. **Back to plates** restores the prior globe time, view, sea level and overlays. **Reset everything** also exits the event.
+
+These are deterministic, explanatory animations, not numerical climate or hazard models. Each scenario identifies compressed timescales, exaggerated dimensions and the use of modern geography. Source links to USGS, NASA, NOAA and Senel et al. (2023, DOI: 10.1038/s41561-023-01290-4) are available in its **Science & sources** section. The atmospheric veil represents different materials in the impact and volcanic scenarios; ice-age forcing is a separate process.
+
+Run locally with `python3 -m http.server 8765`, then open `http://localhost:8765`. No compilation is needed. Check JavaScript syntax with `node --check events.js`.
 
 ## Imagery
 `tex/earth.jpg` is NASA Blue Marble (Visible Earth, world.topo.bathy 2004-12, public domain), resized to 4096×2048. `tex/earth_normal.jpg` is the Earth normal map from the three.js examples. Continents are textured with their present-day imagery and carry it with them through time; a **Satellite imagery** toggle switches back to flat colours.
