@@ -1,0 +1,68 @@
+{
+  "krakatau": {
+    "lat": -6.102,
+    "lon": 105.423,
+    "extentKm": 20,
+    "size": 193,
+    "label": "Krakatau island group",
+    "minMetres": -31,
+    "maxMetres": 773,
+    "sourceZoom": 12,
+    "file": "terrain/krakatau.bin"
+  },
+  "pinatubo": {
+    "lat": 15.142,
+    "lon": 120.35,
+    "extentKm": 22,
+    "size": 193,
+    "label": "Mount Pinatubo, Philippines",
+    "minMetres": 124,
+    "maxMetres": 1570,
+    "sourceZoom": 12,
+    "file": "terrain/pinatubo.bin"
+  },
+  "aceh": {
+    "lat": 5.47,
+    "lon": 95.27,
+    "extentKm": 32,
+    "size": 193,
+    "label": "Western Aceh, Sumatra",
+    "minMetres": -343,
+    "maxMetres": 1632,
+    "sourceZoom": 11,
+    "file": "terrain/aceh.bin"
+  },
+  "sanriku": {
+    "lat": 39.02,
+    "lon": 141.7,
+    "extentKm": 32,
+    "size": 193,
+    "label": "Sanriku coast, northeastern Japan",
+    "minMetres": -458,
+    "maxMetres": 878,
+    "sourceZoom": 11,
+    "file": "terrain/sanriku.bin"
+  },
+  "kilauea": {
+    "lat": 19.6,
+    "lon": -155.5,
+    "extentKm": 120,
+    "size": 193,
+    "label": "Hawai\u02bbi island",
+    "minMetres": -4955,
+    "maxMetres": 4184,
+    "sourceZoom": 9,
+    "file": "terrain/kilauea.bin"
+  },
+  "rift": {
+    "lat": 64.27,
+    "lon": -21.12,
+    "extentKm": 22,
+    "size": 193,
+    "label": "\u00deingvellir rift, Iceland",
+    "minMetres": 83,
+    "maxMetres": 1127,
+    "sourceZoom": 11,
+    "file": "terrain/rift.bin"
+  }
+}

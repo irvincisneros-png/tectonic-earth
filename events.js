@@ -12,7 +12,9 @@
     tsunami: ['NOAA · How tsunamis work', 'https://tsunami.noaa.gov/tsunami-story'],
     indian: ['NOAA · 2004 Indian Ocean tsunami', 'https://nctr.pmel.noaa.gov/indo_1204.html'],
     tohoku: ['NOAA · 2011 Tōhoku earthquake and tsunami', 'https://www.ncei.noaa.gov/news/day-2011-japan-earthquake-and-tsunami'],
-    krakatau: ['Smithsonian · Krakatau eruption history', 'https://volcano.si.edu/volcano.cfm?vn=262000']
+    krakatau: ['Smithsonian · Krakatau eruption history', 'https://volcano.si.edu/volcano.cfm?vn=262000'],
+    pinatubo: ['USGS · Pinatubo, 1991', 'https://pubs.usgs.gov/fs/1997/fs113-97/'],
+    terrain: ['Terrain data, attribution & reconstruction notes', 'terrain/ATTRIBUTION.md']
   };
   const scenarios = {
     ring: {title:'Ring of Fire',sub:'Explore the Pacific rim',lat:15,lon:175,refs:['ring','plates'],times:['Pacific overview','American margin','Aleutian arc','Japan & Philippines','Tonga & New Zealand'],phases:['A belt, not a single volcano','Ocean plate descends','An island arc curves around a trench','Water helps mantle rock melt','Many plates, connected processes'],copy:[
@@ -64,7 +66,15 @@
       'As water becomes shallower, the waves slow and can grow much taller, flooding the coast. Actual run-up depends strongly on local bathymetry and coastline shape.',
       'A tsunami is a series of waves, and the first is not always the largest. The diagram is a process explanation, not an inundation map.'],note:'Schematic coastal cross-section; wave height and time are exaggerated. It does not predict arrival times, safe areas or flooding.',metric:['Trigger','Seafloor uplift','Deep-water wave','Long, often low']}
   };
-  Object.assign(scenarios.tsunami,{title:'Tōhoku, Japan',sub:'2011 · earthquake & tsunami',refs:['tohoku','tsunami'],metric:['Date','11 Mar 2011','Magnitude','Mw 9.1']});
+  Object.assign(scenarios.winter,{sub:'Pinatubo · 1991 aerosol cooling',lat:15.142,lon:120.35,refs:['pinatubo','winter','terrain'],metric:['Reference event','Pinatubo 1991','Climate agent','Sulfate aerosol'],copy:[
+    'Mount Pinatubo rises within a rugged Philippine mountain range. The regional view uses measured terrain, with an interpreted summit before the 1991 eruption.',
+    'The climactic eruption on 15 June 1991 sent ash and sulfur dioxide high into the atmosphere. Pyroclastic flows swept down the surrounding valleys.',
+    'The summit collapsed into a caldera. Coarse ash fell out relatively quickly; sulfur dioxide formed tiny sulfate aerosols in the stratosphere.',
+    'The aerosol layer spread widely and reflected sunlight. Planet view shows a thin haze, while the regional view dims to illustrate reduced sunlight. It is not an opaque shell of ash.',
+    'As aerosols were removed, the temporary cooling weakened. The terrain remained changed. Atmospheric and landscape recovery operate on different timescales.'
+  ],note:'Pinatubo-based teaching sequence. Measured modern terrain has an interpreted pre-eruption summit. Atmospheric thickness and terrain relief are exaggerated; haze and dimming are qualitative, not climate-model output.'});
+  scenarios.eruption.refs.push('terrain');scenarios.eruption.note='Measured Pinatubo-region terrain with an interpreted summit. Generic eruption processes are compressed into a teaching sequence; this is not an exact reconstruction of every 1991 phase.';
+  Object.assign(scenarios.tsunami,{title:'Tōhoku, Japan',sub:'2011 · earthquake & tsunami',refs:['tohoku','tsunami','terrain'],metric:['Date','11 Mar 2011','Magnitude','Mw 9.1']});
   scenarios.tsunami.copy[0]='On 11 March 2011, a magnitude 9.1 earthquake ruptured the subduction boundary off northeastern Honshu, Japan. Strain accumulated where the Pacific Plate descends beneath the overriding plate.';
   scenarios.tsunami.copy[4]='The tsunami devastated parts of northeastern Japan and was recorded across the Pacific. Later waves can remain dangerous. This study explains the mechanism, not measured inundation at a particular coast.';
   scenarios.indian={...scenarios.tsunami,effect:'tsunami',title:'Indian Ocean',sub:'2004 · Sumatra–Andaman',lat:3.295,lon:95.982,refs:['indian','tsunami'],metric:['Date','26 Dec 2004','Magnitude','Mw 9.1'],times:['Before rupture','Earthquake · minutes','Near-source coasts','Across the basin','Continuing waves'],phases:['A locked subduction boundary','A long fault ruptures','Water surges towards nearby coasts','The tsunami crosses the Indian Ocean','A basin-wide catastrophe'],copy:[
@@ -82,6 +92,13 @@
     'The eruption left a profoundly altered landscape. Anak Krakatau later grew inside the caldera, beginning in the twentieth century. It is not shown growing during this short eruption sequence.'
   ],note:'Historical event, schematic terrain and collapse. Ash, collapse and water displacement are illustrated; this is not a reconstruction of exact 1883 wave heights or topography.'};
   const disasterPage=new URLSearchParams(location.search).get('lab')==='disasters';
+  for(const id of ['krakatau','indian','island','ridge'])if(!scenarios[id].refs.includes('terrain'))scenarios[id].refs.push('terrain');
+  scenarios.krakatau.note='Interpreted pre-1883 Danan and Perboewatan cones collapse while Rakata survives. Adjacent islands use measured modern terrain; modern Anak Krakatau is excluded. Relief is exaggerated. This is not a surveyed historical DEM or tsunami forecast.';
+  scenarios.indian.note='Measured western Aceh terrain; wave motion is schematic, not historical inundation. Planet, Region and Close-up views show context, coastline and local wave behaviour. Relief is exaggerated.';
+  scenarios.tsunami.note='Measured Sanriku coastal terrain. Rias and headlands differ from the Aceh example. Waves illustrate processes, not measured 2011 inundation or arrival times.';
+  scenarios.island.phases[4]='Multiple shields build an island';scenarios.island.times[4]='An island grows';scenarios.island.copy[4]='Hawaiʻi is built from several overlapping shield volcanoes. This view uses its modern shape to illustrate growth. Across the wider Hawaiian chain, plate motion carries older volcanoes away from the hotspot, where they erode and subside.';
+  scenarios.island.note='Modern Hawaiʻi elevation and 2016 imagery illustrate shield-island growth, not an ancient reconstruction. Heights and growth are exaggerated. The wider Hawaiian island chain lies outside this regional view.';
+  scenarios.ridge.note='Measured Þingvellir-region terrain and 2016 imagery provide Icelandic rift context. The orange arrows schematically illustrate divergence, not a surveyed fault-motion forecast. Open the process diagram for the spreading cross-section.';
   const disasterIds=['indian','tsunami','krakatau','impact','winter','ice'];
   const visibleScenarios=Object.entries(scenarios).filter(([id])=>disasterPage?disasterIds.includes(id):!disasterIds.includes(id));
   if(disasterPage){visibleScenarios.sort(([a],[b])=>disasterIds.indexOf(a)-disasterIds.indexOf(b));document.body.classList.add('disaster-lab');document.title='Disaster Lab · Tectonic Earth';$('hud').querySelector('h1').textContent='Disaster Lab';}
@@ -158,7 +175,7 @@
     $('event-title').textContent=s.title;$('event-banner').querySelector('strong').textContent=s.title;$('event-note').textContent=s.note;
     $('event-metrics').innerHTML=`<div>${s.metric[0]}<strong>${s.metric[1]}</strong></div><div>${s.metric[2]}<strong>${s.metric[3]}</strong></div>`;
     $('event-sources').querySelector('div').innerHTML=s.refs.map(k=>`<a href="${sources[k][1]}" target="_blank" rel="noopener">${sources[k][0]} ↗</a>`).join('');
-    $('veil-control').hidden=!['impact','winter'].includes(id);$('veil-opacity').value=100;
+    $('veil-control').hidden=!['impact','winter'].includes(id);$('veil-control').firstChild.textContent=id==='winter'?'Planet view: aerosol visibility':'Planet view: dust visibility';$('veil-opacity').value=100;
     update();
   }
   function exit(restore=true){
@@ -196,7 +213,7 @@
       icePatches.forEach(m=>{const {base,center,index}=m.userData;const scale=index>=3?.8+.2*ice:.03+.97*ice;const arr=m.geometry.attributes.position.array;for(let i=0;i<base.length;i+=3){_v.fromArray(base,i).normalize().sub(center).multiplyScalar(scale).add(center).normalize().multiplyScalar(1.018).toArray(arr,i);}m.geometry.attributes.position.needsUpdate=true;m.geometry.computeVertexNormals();m.geometry.computeBoundingSphere();m.visible=index>=3||ice>.03;});
     }
     drawDiagram(p,phase);
-    fidelity.update(s.effect||active,p,+$('veil-opacity').value/100);
+    fidelity.update(s.effect||active,p,+$('veil-opacity').value/100,{scenario:active});
   }
   const ctx=$('event-diagram').getContext('2d');
   function text(str,x,y,color='#d4e4f4',size=15){ctx.fillStyle=color;ctx.font=`${size}px system-ui`;ctx.fillText(str,x,y);}

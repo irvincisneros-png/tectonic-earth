@@ -12,7 +12,7 @@ Live: https://irvincisneros-png.github.io/tectonic-earth/
 - **Mantle heat slider**: scales convection speed and plate speed so students can test the cause-and-effect link.
 - **Check your understanding**: four prompts in the side panel.
 
-Static site (`index.html`, `disasters.html`, `events.js`, `visual-effects.js`, `events.css`), Three.js r128 from cdnjs, no build step. Continent shapes and paths are simplified for teaching, not geologically exact.
+Static site (`index.html`, `disasters.html`, `events.js`, `visual-effects.js`, `regional-scenes.js`, `events.css` and bundled `terrain/` data), Three.js r128 from cdnjs, no build step. Continent shapes and paths are simplified for teaching, not geologically exact.
 
 ## Two pages
 
@@ -23,30 +23,34 @@ Page navigation is above the scenario cards. `disasters.html` embeds the shared 
 
 ### Detailed graphics
 
-`visual-effects.js` adds a reusable 3D surface study for eruptions, island growth, ocean ridges and tsunamis. Drag to orbit and scroll to zoom; **Planet view** returns to global context. The surface scenes use procedural eroded terrain, textured basalt, calderas, emissive lava channels, soft ash particles, ejecta, and displaced water with crest foam. They are illustrative terrain studies, not surveyed reconstructions.
+Choose **Planet**, **Region** or **Close-up**. Region and Close-up share the same geographic scene, with a **Focus on this stage** camera reset. `regional-scenes.js` renders measured elevation and satellite textures for Krakatau, Pinatubo, western Aceh, Sanriku, Hawaiʻi and Þingvellir. Krakatau's interpreted pre-1883 cones and selective collapse retain Rakata; modern Anak Krakatau is excluded. Volcanic winter references Pinatubo 1991, with a different mountain landscape. Volumetric ash, terrain shadows, water reflections/foam and ground-hugging clouds illustrate the processes.
 
 Global effects include a four-layer turbulent atmospheric veil, a soft impact flash and asteroid trail, atmospheric limb glow, and glacial coverage shaded directly on the existing land meshes. Ice no longer appears as floating oval disks over the ocean. The original explanatory diagrams are retained in **Explore the process diagram**.
 
-All graphics are procedural code or the existing Earth textures. No AI images, new external media, or extra graphics libraries are used. Effects are deterministic with timeline scrubbing. The surface renderer is reused across scenarios and caps pixel density for performance.
+Terrain grids and 2016 EOxCloudless imagery are bundled locally; see [attribution and interpretation notes](terrain/ATTRIBUTION.md). No terrain service or API key is needed at runtime. The imagery is modern, not a photograph of historical conditions. No AI images or extra graphics libraries are used. Effects are deterministic with timeline scrubbing. Pixel density is capped, and the hidden globe is not rendered while viewing a region.
 
 ## Earth events
 
-Eight interactive teaching sequences extend the globe:
+Ten interactive teaching sequences extend the globe across the two pages:
 
 - **Ring of Fire:** selected real volcanic locations, schematic arcs and a tour of the Pacific margins.
 - **Volcano eruption:** subduction, water-assisted mantle melting, magma ascent, ash dispersal and new rock.
-- **Build an island:** submarine volcano growth, emergence and a hotspot island chain.
+- **Build an island:** shield growth and emergence illustrated with Hawaiʻi's modern terrain.
 - **New ocean crust:** decompression melting and seafloor spreading, with an animated close-up.
 - **Chicxulub impact:** asteroid approach, ejecta, a spreading global dust/aerosol veil, impact winter and clearing. A visibility control reveals the globe beneath the veil.
 - **Ice-age cycle:** regional schematic ice sheets advance and retreat while sea level falls to approximately −120 m and returns.
-- **Volcanic winter:** hypothetical explosive eruption and a temporary stratospheric sulfate aerosol veil.
-- **Megathrust tsunami:** seafloor displacement, deep-water propagation and shallow-water amplification in a coastal cross-section.
+- **Volcanic winter:** Pinatubo-based eruption and a thin stratospheric sulfate aerosol veil, with reduced sunlight.
+- **Indian Ocean 2004:** basin context and measured western Aceh coastline.
+- **Tōhoku 2011:** a separate Sanriku coastal terrain scene.
+- **Krakatau 1883:** island group, interpreted pre-collapse cones, selective collapse and tsunami generation.
 
 Select a scenario, press **Run event**, or scrub its timeline. Playback speed, pause and restart are available. **Back to plates** restores the prior globe time, view, sea level and overlays. **Reset everything** also exits the event.
 
 These are deterministic, explanatory animations, not numerical climate or hazard models. Each scenario identifies compressed timescales, exaggerated dimensions and the use of modern geography. Source links to USGS, NASA, NOAA and Senel et al. (2023, DOI: 10.1038/s41561-023-01290-4) are available in its **Science & sources** section. The atmospheric veil represents different materials in the impact and volcanic scenarios; ice-age forcing is a separate process.
 
 Run locally with `python3 -m http.server 8765`, then open `http://localhost:8765`. No compilation is needed. Check JavaScript syntax with `node --check events.js`.
+
+Rebuild terrain with `python3 scripts/build-terrain.py` and imagery with `python3 scripts/fetch-imagery.py`. These source-data preparation steps require Python/Pillow and network access; normal site use does not. Browser regression checks are in `scripts/verify-scenes.js`, run through the Playwright CLI's `run-code --filename` command against either local or live pages.
 
 ## Imagery
 `tex/earth.jpg` is NASA Blue Marble (Visible Earth, world.topo.bathy 2004-12, public domain), resized to 4096×2048. `tex/earth_normal.jpg` is the Earth normal map from the three.js examples. Continents are textured with their present-day imagery and carry it with them through time; a **Satellite imagery** toggle switches back to flat colours.
