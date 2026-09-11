@@ -12,7 +12,22 @@ Live: https://irvincisneros-png.github.io/tectonic-earth/
 - **Mantle heat slider**: scales convection speed and plate speed so students can test the cause-and-effect link.
 - **Check your understanding**: four prompts in the side panel.
 
-Static site (`index.html`, `events.js`, `events.css`), Three.js r128 from cdnjs, no build step. Continent shapes and paths are simplified for teaching, not geologically exact.
+Static site (`index.html`, `disasters.html`, `events.js`, `visual-effects.js`, `events.css`), Three.js r128 from cdnjs, no build step. Continent shapes and paths are simplified for teaching, not geologically exact.
+
+## Two pages
+
+- **Tectonics:** the original globe, plate controls and four Earth processes: Ring of Fire, volcanism, island growth and new ocean crust.
+- **[Disaster Lab](https://irvincisneros-png.github.io/tectonic-earth/disasters.html):** 2004 Indian Ocean, 2011 Tōhoku, 1883 Krakatau, Chicxulub, volcanic winter and the ice-age cycle.
+
+Page navigation is above the scenario cards. `disasters.html` embeds the shared app with `?lab=disasters`, avoiding a second copy of the large globe dataset. The Disaster Lab hides the unrelated plate-control panels and starts with the Indian Ocean scenario. Historical cases use NOAA and Smithsonian sources linked in the interface. Tsunami fronts on the globe are schematic crests/troughs, masked by the land geometry, not calculated arrival-time maps.
+
+### Detailed graphics
+
+`visual-effects.js` adds a reusable 3D surface study for eruptions, island growth, ocean ridges and tsunamis. Drag to orbit and scroll to zoom; **Planet view** returns to global context. The surface scenes use procedural eroded terrain, textured basalt, calderas, emissive lava channels, soft ash particles, ejecta, and displaced water with crest foam. They are illustrative terrain studies, not surveyed reconstructions.
+
+Global effects include a four-layer turbulent atmospheric veil, a soft impact flash and asteroid trail, atmospheric limb glow, and glacial coverage shaded directly on the existing land meshes. Ice no longer appears as floating oval disks over the ocean. The original explanatory diagrams are retained in **Explore the process diagram**.
+
+All graphics are procedural code or the existing Earth textures. No AI images, new external media, or extra graphics libraries are used. Effects are deterministic with timeline scrubbing. The surface renderer is reused across scenarios and caps pixel density for performance.
 
 ## Earth events
 

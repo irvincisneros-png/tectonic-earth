@@ -1,5 +1,17 @@
 # Earth events verification — 11 September 2026
 
+## Graphics and separate Disaster Lab revision
+
+Replaced the principal effects with procedural 3D terrain, lava shaders, soft ash/ejecta particles, a layered atmospheric veil, displaced water, and land-shader glaciation. Added a reusable surface renderer with orbit/zoom controls. Retained the 2D process diagrams behind an expandable disclosure. No extra media dependencies were added.
+
+The main page now has four Earth-process cards. `disasters.html` has six disaster/extreme-event cards, including the 2004 Indian Ocean tsunami, 2011 Tōhoku tsunami and 1883 Krakatau eruption. Historical facts use NOAA and Smithsonian source links.
+
+Browser verification covered all six Disaster Lab cases, main-page navigation, planet/surface switching, pause/restart, reverse scrubbing, and desktop/390 px phone layouts. No JavaScript or shader errors were reported. A desktop eruption playback sample measured about 100 requestAnimationFrame callbacks per second on the test machine; this is not a guarantee for other devices. The surface renderer caps pixel density.
+
+Visual corrections included darker basalt, a complete ash-column camera framing, land-conforming snow, and explicit wave-front schematic labels. Fixed renderer inline styles overriding the hidden surface canvas during view changes.
+
+The sections below describe the initial release checks; the page allocation and rendering have since changed as described above.
+
 Implemented as static assets alongside the existing globe. No package installation or build output is required for deployment.
 
 ## Browser checks

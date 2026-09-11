@@ -9,7 +9,10 @@
     impact: ['Senel et al. (2023) · Chicxulub impact winter', 'https://doi.org/10.1038/s41561-023-01290-4'],
     ice: ['NASA · Orbital cycles and ice ages', 'https://science.nasa.gov/science-research/earth-science/milankovitch-orbital-cycles-and-their-role-in-earths-climate/'],
     winter: ['USGS · Volcanoes can affect climate', 'https://www.usgs.gov/programs/VHP/volcanoes-can-affect-climate'],
-    tsunami: ['NOAA · How tsunamis work', 'https://tsunami.noaa.gov/tsunami-story']
+    tsunami: ['NOAA · How tsunamis work', 'https://tsunami.noaa.gov/tsunami-story'],
+    indian: ['NOAA · 2004 Indian Ocean tsunami', 'https://nctr.pmel.noaa.gov/indo_1204.html'],
+    tohoku: ['NOAA · 2011 Tōhoku earthquake and tsunami', 'https://www.ncei.noaa.gov/news/day-2011-japan-earthquake-and-tsunami'],
+    krakatau: ['Smithsonian · Krakatau eruption history', 'https://volcano.si.edu/volcano.cfm?vn=262000']
   };
   const scenarios = {
     ring: {title:'Ring of Fire',sub:'Explore the Pacific rim',lat:15,lon:175,refs:['ring','plates'],times:['Pacific overview','American margin','Aleutian arc','Japan & Philippines','Tonga & New Zealand'],phases:['A belt, not a single volcano','Ocean plate descends','An island arc curves around a trench','Water helps mantle rock melt','Many plates, connected processes'],copy:[
@@ -61,13 +64,37 @@
       'As water becomes shallower, the waves slow and can grow much taller, flooding the coast. Actual run-up depends strongly on local bathymetry and coastline shape.',
       'A tsunami is a series of waves, and the first is not always the largest. The diagram is a process explanation, not an inundation map.'],note:'Schematic coastal cross-section; wave height and time are exaggerated. It does not predict arrival times, safe areas or flooding.',metric:['Trigger','Seafloor uplift','Deep-water wave','Long, often low']}
   };
+  Object.assign(scenarios.tsunami,{title:'Tōhoku, Japan',sub:'2011 · earthquake & tsunami',refs:['tohoku','tsunami'],metric:['Date','11 Mar 2011','Magnitude','Mw 9.1']});
+  scenarios.tsunami.copy[0]='On 11 March 2011, a magnitude 9.1 earthquake ruptured the subduction boundary off northeastern Honshu, Japan. Strain accumulated where the Pacific Plate descends beneath the overriding plate.';
+  scenarios.tsunami.copy[4]='The tsunami devastated parts of northeastern Japan and was recorded across the Pacific. Later waves can remain dangerous. This study explains the mechanism, not measured inundation at a particular coast.';
+  scenarios.indian={...scenarios.tsunami,effect:'tsunami',title:'Indian Ocean',sub:'2004 · Sumatra–Andaman',lat:3.295,lon:95.982,refs:['indian','tsunami'],metric:['Date','26 Dec 2004','Magnitude','Mw 9.1'],times:['Before rupture','Earthquake · minutes','Near-source coasts','Across the basin','Continuing waves'],phases:['A locked subduction boundary','A long fault ruptures','Water surges towards nearby coasts','The tsunami crosses the Indian Ocean','A basin-wide catastrophe'],copy:[
+    'On 26 December 2004, a magnitude 9.1 earthquake began off northern Sumatra. The Indian Plate was descending beneath the overriding Burma plate along the Sunda subduction zone.',
+    'Fault slip displaced the seafloor over a long region extending north towards the Andaman Islands. The displaced water generated a tsunami. The source was an extended fault, not just the epicentre dot.',
+    'Nearby coasts, including Aceh in northern Sumatra, were struck quickly. The 3D coastal view illustrates shoaling: waves slow and can grow as they enter shallow water.',
+    'Waves spread through the Indian Ocean, reaching Thailand, Sri Lanka, India and much farther west. Planet view shows a schematic spreading front; real waves refracted around islands and underwater terrain.',
+    'The tsunami affected communities around the basin. Multiple waves arrived over hours. The scale of the disaster led to major improvements in Indian Ocean tsunami warning systems.'
+  ],note:'Historical event, schematic animation. The coastal terrain is illustrative, not an Aceh reconstruction. Wave fronts do not calculate bathymetry, travel times or inundation. Switch between Planet view and 3D surface view.'};
+  scenarios.krakatau={...scenarios.eruption,effect:'krakatau',title:'Krakatau',sub:'1883 · eruption & tsunami',lat:-6.102,lon:105.423,refs:['krakatau','tsunami'],metric:['Location','Sunda Strait','Event','1883 eruption'],times:['Volcanic island','Explosive activity','Caldera collapse','Tsunami generation','Changed landscape'],phases:['An island between Java and Sumatra','Ash and hot material erupt','Much of the volcano collapses','Water is displaced','A caldera remains'],copy:[
+    'Krakatau stood in the Sunda Strait between Java and Sumatra. Its catastrophic 1883 eruption reshaped the volcanic island and surrounding seafloor.',
+    'Powerful explosive activity produced ash and pyroclastic flows: fast-moving mixtures of hot gas and volcanic fragments. The ash column and hot material are distinct hazards.',
+    'Collapse during the eruption destroyed much of the volcanic edifice and formed a caldera. The summit in this illustration subsides as the sequence advances.',
+    'The eruption and collapse generated destructive tsunamis. Volcanic tsunamis have different sources from megathrust-earthquake tsunamis; the detailed contributions to the 1883 waves are complex.',
+    'The eruption left a profoundly altered landscape. Anak Krakatau later grew inside the caldera, beginning in the twentieth century. It is not shown growing during this short eruption sequence.'
+  ],note:'Historical event, schematic terrain and collapse. Ash, collapse and water displacement are illustrated; this is not a reconstruction of exact 1883 wave heights or topography.'};
+  const disasterPage=new URLSearchParams(location.search).get('lab')==='disasters';
+  const disasterIds=['indian','tsunami','krakatau','impact','winter','ice'];
+  const visibleScenarios=Object.entries(scenarios).filter(([id])=>disasterPage?disasterIds.includes(id):!disasterIds.includes(id));
+  if(disasterPage){visibleScenarios.sort(([a],[b])=>disasterIds.indexOf(a)-disasterIds.indexOf(b));document.body.classList.add('disaster-lab');document.title='Disaster Lab · Tectonic Earth';$('hud').querySelector('h1').textContent='Disaster Lab';}
   const menu = document.createElement('section'); menu.id='events';
   menu.innerHTML=`<h2>Earth events</h2><p class="event-intro">Build new worlds. Explore the events that changed ours.</p><div class="event-menu">${Object.entries(scenarios).map(([id,s])=>`<button data-event="${id}" aria-pressed="false">${s.title}<span>${s.sub}</span></button>`).join('')}</div><div id="event-panel" hidden><h3 id="event-title"></h3><div class="event-actions"><button id="event-play">▶ Run event</button><button id="event-restart">↺ Restart</button><button id="event-exit">Back to plates</button><select id="event-speed" aria-label="Event playback speed"><option value="0.5">0.5× speed</option><option value="1" selected>1× speed</option><option value="2">2× speed</option></select></div><label class="slider" for="event-progress">Scrub through the event</label><input id="event-progress" type="range" min="0" max="100" step="0.1" value="0"><div class="event-clock"><b id="event-phase"></b><span id="event-time"></span></div><p id="event-copy"></p><div class="event-metrics" id="event-metrics"></div><label id="veil-control" class="slider" hidden>Inspect beneath the atmospheric veil<input id="veil-opacity" aria-label="Atmospheric veil visibility" type="range" min="0" max="100" value="100"></label><p class="event-note" id="event-note"></p><details id="event-sources"><summary>Science &amp; sources</summary><div></div></details></div>`;
   $('side').prepend(menu);
+  menu.querySelector('h2').textContent=disasterPage?'Disasters & extremes':'Earth processes';
+  menu.querySelector('.event-intro').textContent=disasterPage?'Explore what happened, how it spread, and why.':'Explore volcanism, plate boundaries and the formation of new land.';
+  menu.querySelector('.event-menu').innerHTML=visibleScenarios.map(([id,s])=>`<button data-event="${id}" aria-pressed="false">${s.title}<span>${s.sub}</span></button>`).join('');
+  menu.insertAdjacentHTML('afterbegin',`<nav class="lab-nav" aria-label="Simulation pages"><a href="index.html" target="_top" ${disasterPage?'':'aria-current="page"'}>Tectonics</a><a href="disasters.html" target="_top" ${disasterPage?'aria-current="page"':''}>Disaster Lab ↗</a></nav>`);
+  if(disasterPage)$('event-exit').textContent='↺ Reset scene';
   stage.insertAdjacentHTML('beforeend','<div id="event-banner" hidden><strong></strong><span></span></div><div id="event-detail" hidden><div class="detail-heading"><b id="event-detail-title">PROCESS CLOSE-UP</b><span>Illustration · not to scale</span></div><canvas id="event-diagram" width="640" height="250" aria-label="Animated event process diagram" role="img"></canvas><div class="detail-foot" id="event-caption"></div></div>');
-  const phoneLayout=matchMedia('(max-width:820px)');
-  function positionDetail(){if(phoneLayout.matches)$('event-copy').after($('event-detail'));else stage.append($('event-detail'));}
-  phoneLayout.addEventListener('change',positionDetail);positionDetail();
+  const processDetails=document.createElement('details');processDetails.id='event-process-notes';processDetails.innerHTML='<summary>Explore the process diagram</summary>';$('event-copy').after(processDetails);processDetails.append($('event-detail'));
   new ResizeObserver(()=>resize()).observe(stage);
   const group=new THREE.Group();group.name='Earth events';globe.add(group);group.visible=false;
   let active=null,progress=0,running=false,saved=null,lastPhase=-1;
@@ -115,6 +142,7 @@
   for(let i=-5;i<=5;i++){const strip=mesh(new THREE.BoxGeometry(.012,.009,.022),i===0?0xff8e4b:0xb47c62);strip.position.set(i*.014,.009,0);ridgeGroup.add(strip);}
   const siteMarker=mesh(new THREE.SphereGeometry(.012,12,8),0x77dfff);siteMarker.material.emissive.setHex(0x225577);siteMarker.position.y=.02;local.add(siteMarker);
   const ambient=scene.children.find(o=>o.isAmbientLight);
+  const fidelity=createTectonicFX({group,local,ringGroup,icePatches,legacy:{dust,plume,glow,impactRing,asteroid,volcano,lava,islandChain,ridgeGroup}});
   function setButton(){ $('event-play').textContent=running?'❚❚ Pause':'▶ Run event'; }
   function stop(){running=false;setButton();}
   function capture(){return {time,sea:seaLevel,theta:camTheta,phi:camPhi,dist:camDist,cut:cutaway,spin:autoSpin,toggles:['tBound','tArrows','tPlates','tLabels','tGrid'].map(id=>[id,$(id).classList.contains('on')])};}
@@ -134,14 +162,14 @@
     update();
   }
   function exit(restore=true){
-    if(!active)return;stop();active=null;group.visible=false;sun.intensity=1.1;if(ambient)ambient.intensity=.75;
+    if(!active)return;stop();active=null;fidelity.exit();group.visible=false;sun.intensity=1.1;if(ambient)ambient.intensity=.75;
     ['event-panel','event-banner','event-detail'].forEach(id=>$(id).hidden=true);document.body.classList.remove('event-active');
     document.querySelectorAll('[data-event]').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});
     const old=saved;saved=null;if(restore&&old){setTime(old.time);setSea(old.sea);setCut(old.cut);camTheta=old.theta;camPhi=old.phi;camDist=old.dist;old.toggles.forEach(([id,on])=>{if($(id).classList.contains('on')!==on)$(id).click();});if(autoSpin!==old.spin)$('tSpin').click();}
   }
   menu.querySelectorAll('[data-event]').forEach(b=>b.addEventListener('click',()=>enter(b.dataset.event)));
   $('event-play').onclick=()=>{if(progress>=1)progress=0;running=!running;setButton();update();};
-  $('event-restart').onclick=()=>{stop();progress=0;update();};$('event-exit').onclick=()=>exit();
+  $('event-restart').onclick=()=>{stop();progress=0;update();};$('event-exit').onclick=()=>disasterPage?enter(active||'indian'):exit();
   $('event-progress').oninput=e=>{stop();progress=+e.target.value/100;update();};$('veil-opacity').oninput=()=>update();
   // Exit before the original controls run, so ordinary globe controls keep their meaning.
   ['reset','mCut','mSurface','time','today','pangaea','play','sea','sIce','sNow','sGr','sAll','sCret'].forEach(id=>$(id).addEventListener(id==='time'||id==='sea'?'input':'click',e=>{const input=e.target.value;exit();if(e.type==='input')e.target.value=input;},true));
@@ -168,6 +196,7 @@
       icePatches.forEach(m=>{const {base,center,index}=m.userData;const scale=index>=3?.8+.2*ice:.03+.97*ice;const arr=m.geometry.attributes.position.array;for(let i=0;i<base.length;i+=3){_v.fromArray(base,i).normalize().sub(center).multiplyScalar(scale).add(center).normalize().multiplyScalar(1.018).toArray(arr,i);}m.geometry.attributes.position.needsUpdate=true;m.geometry.computeVertexNormals();m.geometry.computeBoundingSphere();m.visible=index>=3||ice>.03;});
     }
     drawDiagram(p,phase);
+    fidelity.update(s.effect||active,p,+$('veil-opacity').value/100);
   }
   const ctx=$('event-diagram').getContext('2d');
   function text(str,x,y,color='#d4e4f4',size=15){ctx.fillStyle=color;ctx.font=`${size}px system-ui`;ctx.fillText(str,x,y);}
@@ -177,10 +206,11 @@
   function drawDiagram(p,phase){
     ctx.clearRect(0,0,640,250);const bg=ctx.createLinearGradient(0,0,0,250);bg.addColorStop(0,'#101c30');bg.addColorStop(1,'#20394d');ctx.fillStyle=bg;ctx.fillRect(0,0,640,250);
     let caption='';
-    if(['ring','eruption'].includes(active)){
+    const effect=scenarios[active].effect||active;
+    if(['ring','eruption','krakatau'].includes(effect)){
       poly([[0,145],[640,145],[640,250],[0,250]],'#793e31');poly([[0,130],[210,130],[410,220],[400,238],[202,151],[0,151]],'#677d93');poly([[230,136],[380,136],[455,75],[523,136],[640,136],[640,162],[260,162]],'#8e7965');
       arrow(110,122,56,0,'#7fcaff');arrow(333,155,52,25,'#7fcaff');arrow(434,180,12,-54);poly([[441,162],[450,92],[458,162]],'#ff8241');text('Oceanic plate',24,109);text('Mantle wedge',300,224);text('Magma rises',468,198);text('Volcanic arc',457,58);arrow(260,193,30,-28,'#9eddff');text('Water released',76,219,'#9eddff',14);
-      if(active==='eruption'&&p>.25&&p<.85){cloud(452,45,25+35*smooth(p,.25,.7),.8);for(let i=0;i<16;i++){const x=456+i*9;ctx.fillStyle='#c5b9a6';ctx.fillRect(x,65+((i*17+p*100)%52),3,3);}}
+      if(['eruption','krakatau'].includes(effect)&&p>.25&&p<.85){cloud(452,45,25+35*smooth(p,.25,.7),.8);for(let i=0;i<16;i++){const x=456+i*9;ctx.fillStyle='#c5b9a6';ctx.fillRect(x,65+((i*17+p*100)%52),3,3);}}
       caption='Water from the descending slab helps the mantle above it melt.';
     } else if(active==='island'){
       ctx.fillStyle='#155078';ctx.fillRect(0,96,640,110);ctx.fillStyle='#5c4a42';ctx.fillRect(0,207,640,43);
@@ -203,7 +233,7 @@
       const amount=smooth(p,0,.45)*(1-smooth(p,.55,1));ctx.fillStyle='#184d72';ctx.fillRect(0,137+amount*43,640,113);poly([[0,174],[140,149],[250,188],[440,168],[560,141],[640,156],[640,250],[0,250]],'#80765c');
       poly([[0,174],[0,126-amount*74],[60+amount*90,134-amount*35],[110+amount*130,163],[140,173]],'#d8effb');ctx.fillStyle='#184d72';ctx.fillRect(245,180+amount*35,180,70);
       text('Ice sheet',30,46,'#d6f3ff');text(`Sea level: ${-Math.round(amount*120)} m`,392,72,'#a9ddff');text(amount>.6?'Exposed shelf / land bridge':'Shelf beneath the sea',243,236,'#e4d3b6');arrow(143,106,amount*95,25,'#daefff');caption='Ice stored on land lowers the ocean; melting reverses the process.';
-    } else if(active==='tsunami'){
+    } else if(effect==='tsunami'){
       poly([[0,194],[350,194],[500,163],[575,111],[640,105],[640,250],[0,250]],'#766e60');
       ctx.beginPath();ctx.moveTo(0,130);for(let x=0;x<=620;x+=2){const centre=80+p*510,amp=p>.55?12+30*ramp(p,.55,1):9;const y=130-Math.sin((x-centre)/24)*Math.exp(-Math.pow((x-centre)/100,2))*amp;ctx.lineTo(x,y);}ctx.lineTo(620,230);ctx.lineTo(0,230);ctx.closePath();ctx.fillStyle='rgba(46,148,199,.65)';ctx.fill();
       if(p<.35)arrow(99,223,0,-32*ramp(p,.05,.3),'#ffb57a');text('Deep ocean',30,42);text('Shallow coast',440,42);arrow(213,80,90,0,'#94deff');text('Wave slows and grows',373,83,'#afe4ff',15);text('Seafloor displacement',22,245,'#f3c398',14);caption='Exaggerated wave height. Local seafloor shape controls real tsunami behaviour.';
@@ -213,4 +243,5 @@
   // Reuse the existing animation loop so scene changes are rendered in the same frame.
   const originalFrame=frame;let eventLast=performance.now();
   frame=function(now){const dt=Math.min(.05,(now-eventLast)/1000);eventLast=now;if(active&&running&&!document.hidden){progress=Math.min(1,progress+dt/36*+$('event-speed').value);if(progress===1)stop();update();}originalFrame(now);};
+  if(disasterPage)enter('indian');
 })();

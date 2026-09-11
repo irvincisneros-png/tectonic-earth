@@ -1,5 +1,24 @@
 #app{grid-template-rows:minmax(0,1fr)}
 #stage{min-height:0}
+#event-surface{position:absolute;inset:0;touch-action:none;cursor:grab}
+#event-surface[hidden],#event-view-controls[hidden],#surface-study-label[hidden]{display:none!important}
+#hud,#event-banner,#event-detail{z-index:2}
+#event-view-controls{position:absolute;bottom:22px;right:20px;z-index:4;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:340px}
+#event-view-controls button{font-size:12px;background:#101c28dd;backdrop-filter:blur(8px)}
+#event-view-controls button.on{color:#ffd3ab;border-color:#ec9554}
+#fx-view-label{width:100%;text-align:right;font-size:11px;color:#b5c2d1;text-shadow:0 1px 5px #000}
+#surface-study-label{position:absolute;bottom:78px;right:20px;z-index:3;font-size:9px;letter-spacing:.08em;color:#c2cfdd;text-shadow:0 1px 5px #000;max-width:260px;text-align:right}
+body.surface-study #hud .sub{visibility:hidden}
+body.surface-study #event-detail{opacity:.92}
+#event-process-notes{margin:12px 0}
+#event-process-notes summary{font-size:12px;color:#b5c6d8}
+#event-process-notes #event-detail{position:static;width:100%;margin:10px 0 0}
+.lab-nav{display:flex;gap:8px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.lab-nav a{color:#a9bed4;text-decoration:none;border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:12px}
+.lab-nav a[aria-current]{color:#ffbd88;border-color:#a0643b;background:#35271d}
+.disaster-lab #side>section:not(#events){display:none}
+.disaster-lab #era,.disaster-lab #timeline{display:none}
+.disaster-lab #events{border-bottom:0}
 #events{order:-1;border-bottom:1px solid var(--line);padding-bottom:18px}
 #events .event-intro{color:var(--muted);font-size:13px;margin:0 0 12px}
 .event-menu{display:grid;grid-template-columns:1fr 1fr;gap:7px}
@@ -31,3 +50,4 @@ body.event-active #labels{display:none}
 #event-speed{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;font:inherit;font-size:12px;padding:5px}
 #event-panel [hidden],#event-banner[hidden],#event-detail[hidden]{display:none}
 @media(max-width:820px){#app{height:100dvh;grid-template-rows:58dvh minmax(0,1fr)}#event-detail{position:static;width:100%;margin:12px 0}#event-banner{top:68px;left:10px;padding:6px 9px;max-width:240px}#event-banner strong{font-size:14px}#event-detail .detail-heading{padding:7px 8px}#event-detail .detail-foot{font-size:11px;padding:4px 8px 8px}#hud h1{font-size:22px}#event-banner span{font-size:10px}#side{min-height:0}}
+@media(max-width:820px){#event-view-controls{right:12px;bottom:12px}#surface-study-label{right:12px;bottom:68px}}
